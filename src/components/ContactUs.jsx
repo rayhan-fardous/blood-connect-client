@@ -52,7 +52,7 @@ const ContactUs = () => {
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 mb-6 leading-[1.1]">
             Have an inquiry? <br />
             <span className="bg-linear-to-r from-red-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
-              Let’s bridge the gap.
+              Let’s connect the gap.
             </span>
           </h2>
           <p className="text-slate-600 text-lg md:text-xl max-w-2xl font-light leading-relaxed">
@@ -77,10 +77,10 @@ const ContactUs = () => {
                     Emergency Hotlines
                   </h3>
                   <p className="text-slate-900 font-bold mt-1 group-hover:text-red-600 transition-colors duration-300">
-                    +880 1700-000000
+                    +880 1785-473355
                   </p>
                   <p className="text-slate-500 text-sm font-light">
-                    +880 1800-000000
+                    +880 1785-473355
                   </p>
                 </div>
               </div>
@@ -98,10 +98,10 @@ const ContactUs = () => {
                     Secure Inboxes
                   </h3>
                   <p className="text-slate-900 font-bold mt-1 group-hover:text-blue-600 transition-colors duration-300">
-                    support@bloodbridge.com
+                    support@bloodconnect.com
                   </p>
                   <p className="text-slate-500 text-sm font-light">
-                    partnerships@bloodbridge.com
+                    partnerships@bloodconnect.com
                   </p>
                 </div>
               </div>
@@ -119,10 +119,10 @@ const ContactUs = () => {
                     HQ Coordinate
                   </h3>
                   <p className="text-slate-900 font-bold mt-1 group-hover:text-emerald-600 transition-colors duration-300">
-                    Dhanmondi Architecture Hub
+                    Banani Architecture Hub, Dhaka-1213
                   </p>
                   <p className="text-slate-500 text-sm font-light leading-snug">
-                    123, Life Saver Road, Dhaka, BD
+                    Level 4, Plot 16, Block C, Bangladesh
                   </p>
                 </div>
               </div>

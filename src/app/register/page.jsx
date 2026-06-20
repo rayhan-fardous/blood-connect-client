@@ -165,6 +165,13 @@ const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
         name: formData.fullName,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        bloodGroup: formData.bloodGroup,
+        district: formData.district,
+        upazila: formData.upazila,
+        phone: formData.phone,
+        avatarUrl: formData.avatarUrl,
         // Additional data as metadata (if your schema supports it)
         metadata: {
           bloodGroup: formData.bloodGroup,
@@ -178,12 +185,14 @@ const RegisterPage = () => {
       if (signUpError) {
         // Handle specific error messages
         setError(signUpError.message || "Registration failed");
+        toast.error(signUpError.message || "Registration failed.");
         setLoading(false);
         return;
       }
 
       // Success – redirect to dashboard or login
-      router.push("/dashboard"); // অথবা '/login' (অটোমেটিক লগইন হতে পারে)
+      toast.success("Registration successful! Please login.");
+      router.push("/dashboard");
     } catch (err) {
       console.error("Unexpected error:", err);
       setError("Something went wrong. Please try again.");

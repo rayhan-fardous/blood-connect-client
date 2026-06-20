@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Droplets } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const FloatingBloodCell = ({ size, top, left, delay, duration }) => (
   <div
@@ -40,17 +41,29 @@ const LoginPage = () => {
     }
     setLoading(true);
 
-    setTimeout(() => {
-      if (
-        formData.email === "test@bloodbridge.com" &&
-        formData.password === "123456"
-      ) {
-        router.push("/dashboard");
-      } else {
-        setError("Invalid email or password.");
+    setError("");
+
+    try {
+      const { data, error: signInError } = await authClient.signIn.email({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password.");
+        toast.error(signInError.message || "Invalid email or password.");
         setLoading(false);
+        return;
       }
-    }, 1500);
+      // Successful login – redirect to dashboard
+
+      toast.success("Login successful!");
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (

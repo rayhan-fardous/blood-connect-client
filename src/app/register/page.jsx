@@ -17,11 +17,12 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-import logoImg from "@/assets/logo.png";
 import { authClient } from "@/lib/auth-client";
 
 import districtsRaw from "../../../data/districts.json";
 import upazilasRaw from "../../../data/upazilas.json";
+
+import toast from 'react-hot-toast';
 
 const districtsInfo = districtsRaw[2].data;
 const upazilasInfo = upazilasRaw[2].data;
@@ -70,7 +71,6 @@ const RegisterPage = () => {
   // District & Upazila state
   const [filteredUpazilas, setFilteredUpazilas] = useState([]);
 
-  // যখন জেলা সিলেক্ট করবে, তখন উপজেলা ফিল্টার হবে এবং আগের উপজেলা রিসেট হবে
   useEffect(() => {
     if (formData.district) {
       const selectedDistrict = districtsInfo.find(

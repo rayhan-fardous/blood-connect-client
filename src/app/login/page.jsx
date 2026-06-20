@@ -5,7 +5,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Droplets } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from '@/lib/auth-client';
+import toast from 'react-hot-toast';
 
 const FloatingBloodCell = ({ size, top, left, delay, duration }) => (
   <div

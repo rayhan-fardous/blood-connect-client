@@ -7,8 +7,9 @@ import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, Bell, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "@/assets/logo.png";
+import { useSession } from "@/lib/auth-client";
 
-const Navbar = ({ isLoggedIn = false, user = null }) => {
+const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -16,11 +17,15 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Scroll Effect Logic
+  // Better Auth session
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
+  const user = session?.user;
+
+  console.log(user);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -28,9 +33,11 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
 
   const handleLogin = () => router.push("/login");
 
-  const handleLogout = () => {
-    console.log("Logout");
+  const handleLogout = async () => {
+    const { authClient } = await import("@/lib/auth-client");
+    await authClient.signOut();
     setDropdownOpen(false);
+    router.push("/");
   };
 
   // Modernized Colors: Optimized for a light Hero section background
@@ -116,8 +123,6 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
         <div className="hidden md:flex items-center gap-2">
           <NavItem path="/" label="Home" />
           <NavItem path="/donation-requests" label="Donation Requests" />
-          <NavItem path="/funding" label="Funding" />
-          <NavItem path="/dashboard" label="Dashboard" />
 
           {/* AUTH SECTION */}
           <div className="flex items-center gap-4 border-l border-gray-200 pl-4 ml-2">
@@ -140,8 +145,10 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
                 </motion.button>
               </>
             ) : (
-              <div className="flex items-center gap-5 relative">
-                {/* Notification */}
+              <>
+                <NavItem path="/funding" label="Funding" />
+
+                {/* Clean Notification Icon */}
                 <button
                   className={`relative transition-colors ${textColor} hover:text-red-600`}
                 >
@@ -154,36 +161,53 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
                 </button>
 
-                {/* USER PROFILE */}
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 transition-all hover:scale-105 hover:shadow-sm"
-                >
-                  <Image
-                    src={user?.avatar || "/default-avatar.png"}
-                    width={28}
-                    height={28}
-                    className="rounded-full object-cover"
-                    alt="user"
-                  />
-                  <ChevronDown className={`w-4 h-4 mr-1 ${textColor}`} />
-                </button>
+                {/* Avatar Dropdown - no chevron */}
+                <div className="relative">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 rounded-full border border-white/20 hover:border-red-500/50 transition-all"
+                  >
+                    <img
+                      src={
+                        user?.image ||
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ef4444' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3C/svg%3E"
+                      }
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover w-8 h-8"
+                      alt="user"
+                    />
+                  </button>
 
-                {/* DROPDOWN */}
-                <AnimatePresence>
+                  {/* DROPDOWN */}
                   {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-14 w-56 bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden"
-                    >
-                      {/* existing dropdown content */}
-                    </motion.div>
+                    <div className="absolute right-0 top-14 w-56 bg-white/95 backdrop-blur-xl shadow-2xl border border-gray-100 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 z-50">
+                      <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                        <p className="font-semibold text-gray-800">
+                          Hello, {user?.name?.split(" ")[0] || "User"}!
+                        </p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                      <div className="p-2 flex flex-col gap-1">
+                        <Link
+                          href="/dashboard"
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <div className="h-px bg-gray-100 my-1" />
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 font-medium hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -211,52 +235,63 @@ const Navbar = ({ isLoggedIn = false, user = null }) => {
               <Link
                 href="/"
                 className="text-gray-700 font-medium p-2 rounded-xl hover:bg-red-50 hover:text-red-600 transition"
+                onClick={() => setMobileOpen(false)}
               >
                 Home
               </Link>
               <Link
                 href="/donation-requests"
                 className="text-gray-700 font-medium p-2 rounded-xl hover:bg-red-50 hover:text-red-600 transition"
+                onClick={() => setMobileOpen(false)}
               >
                 Donation Requests
               </Link>
-              <Link
-                href="/funding"
-                className="text-gray-700 font-medium p-2 rounded-xl hover:bg-red-50 hover:text-red-600 transition"
-              >
-                Funding
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-gray-700 font-medium p-2 rounded-xl hover:bg-red-50 hover:text-red-600 transition"
-              >
-                Dashboard
-              </Link>
-
-              <div className="h-px bg-gray-100 my-2" />
 
               {!isLoggedIn ? (
-                <div className="flex flex-col gap-2">
+                <>
                   <Link
                     href="/register"
-                    className="text-center font-medium text-gray-600 py-2 hover:text-red-600"
+                    className="text-gray-800 font-medium hover:text-red-600 transition"
+                    onClick={() => setMobileOpen(false)}
                   >
                     Register
                   </Link>
                   <button
-                    onClick={handleLogin}
+                    onClick={() => {
+                      handleLogin();
+                      setMobileOpen(false);
+                    }}
                     className="w-full bg-red-600 text-white font-semibold py-3 rounded-xl shadow-md hover:bg-red-700 transition"
                   >
                     Login
                   </button>
-                </div>
+                </>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-center text-red-600 font-medium py-3 border border-red-100 rounded-xl hover:bg-red-50 transition"
-                >
-                  Logout
-                </button>
+                <>
+                  <Link
+                    href="/funding"
+                    className="text-gray-800 font-medium hover:text-red-600 transition"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Funding
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-800 font-medium hover:text-red-600 transition"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileOpen(false);
+                    }}
+                    className="w-full text-center text-red-600 font-medium py-3 border border-red-200 rounded-xl hover:bg-red-50 transition"
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </motion.div>

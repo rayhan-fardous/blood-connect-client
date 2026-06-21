@@ -1,11 +1,10 @@
 import React from 'react';
 
-const page = () => {
+export default function AdminDashboard() {
   return (
-    <div>
-      
+    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+      <p className="text-gray-500 mt-2">Welcome to the admin dashboard page. Under development.</p>
     </div>
   );
-};
-
-export default page;
+}

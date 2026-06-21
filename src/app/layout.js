@@ -1,29 +1,24 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "react-hot-toast";
+// app/layout.js
+import { Poppins } from 'next/font/google';
+import './globals.css';
+import { Toaster } from 'react-hot-toast';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 export const metadata = {
-  title: "BloodConnect",
-  description: "Connecting Donors, Saving Lives",
+  title: 'BloodConnect',
+  description: 'Connecting Donors, Saving Lives',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+    <html lang="en" className="h-full antialiased">
+      <body
+        className={`${poppins.className} min-h-full flex flex-col bg-gray-50 text-gray-900`}
+      >
         {children}
         <Toaster
           position="top-center"

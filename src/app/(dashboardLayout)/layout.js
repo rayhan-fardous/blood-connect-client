@@ -13,21 +13,42 @@ import {
   Activity,
   FilePlus,
   ClipboardList,
+  Users,
+  Droplet,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Logo from "@/assets/logo.png";
 import Image from "next/image";
 
-const sidebarLinks = [
+// Sidebar links based on roles
+const adminLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  { href: '/dashboard/all-users', label: 'All Users', icon: Users },
+  { href: '/dashboard/all-requests', label: 'All Requests', icon: Droplet },
+];
+
+const volunteerLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/profile", label: "Profile", icon: User },
+  { href: '/dashboard/all-requests', label: 'All Requests', icon: Droplet },
   {
     href: "/dashboard/create-request",
     label: "Create Request",
     icon: FilePlus,
   },
-  { href: "/dashboard/requests", label: "My Requests", icon: ClipboardList },
+];
+
+const donorLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  {
+    href: '/dashboard/create-request',
+    label: 'Create Request',
+    icon: FilePlus,
+  },
+  { href: '/dashboard/requests', label: 'My Requests', icon: ClipboardList },
 ];
 
 export default function DashboardLayout({ children }) {
@@ -35,6 +56,12 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const router = useRouter();
+
+  // Determine sidebar links based on role
+  const role = session?.user?.roll?.toLowerCase();
+  let sidebarLinks = donorLinks; // default
+  if (role === 'admin') sidebarLinks = adminLinks;
+  else if (role === 'volunteer') sidebarLinks = volunteerLinks;
 
   const handleLogout = async () => {
     const { authClient } = await import("@/lib/auth-client");
@@ -75,7 +102,11 @@ export default function DashboardLayout({ children }) {
                 Blood<span className="text-red-600">Connect</span>
               </h1>
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-                Donor Panel
+                {role === 'admin'
+                  ? 'Admin Panel'
+                  : role === 'volunteer'
+                    ? 'Volunteer Panel'
+                    : 'Donor Panel'}
               </p>
             </div>
           </Link>
@@ -89,7 +120,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Navigation Links */}
         <nav className="flex-1 px-3 py-6 space-y-1.5">
-          {sidebarLinks.map((link) => {
+          {volunteerLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (

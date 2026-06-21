@@ -1,4 +1,4 @@
-// app/dashboard/my-donation-requests/page.jsx
+// app/(dashboardLayout)/all-blood-donation-request/page.jsx
 'use client';
 
 import { useState } from 'react';
@@ -13,13 +13,14 @@ import {
   MapPin,
   Calendar,
   Clock,
-  ArrowLeft,
   Filter,
+  Search,
+  Users,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Dummy data for all donation requests (replace with API later)
-const allRequestsData = [
+// Dummy data – all requests from different users
+const allRequests = [
   {
     id: 'req-1',
     recipientName: 'Nayeem Hasan',
@@ -116,57 +117,34 @@ const allRequestsData = [
     bloodGroup: 'AB-',
     status: 'pending',
   },
-  {
-    id: 'req-9',
-    recipientName: 'Imran Hossain',
-    district: 'Chittagong',
-    upazila: 'Kotwali',
-    donationDate: '2026-04-08',
-    donationTime: '10:15 AM',
-    bloodGroup: 'A+',
-    status: 'pending',
-    donorInfo: null,
-  },
-  {
-    id: 'req-10',
-    recipientName: 'Zara Ahmed',
-    district: 'Sylhet',
-    upazila: 'Moulvibazar',
-    donationDate: '2026-04-11',
-    donationTime: '11:45 AM',
-    bloodGroup: 'O-',
-    status: 'done',
-    donorInfo: { name: 'Karim Uddin', email: 'karim@example.com' },
-  },
 ];
 
-const ITEMS_PER_PAGE = 4; // Adjust as needed
+const ITEMS_PER_PAGE = 5;
 
-export default function MyDonationRequestsPage() {
-  const [requests, setRequests] = useState(allRequestsData);
+export default function allDonationRequests() {
+  const [requests, setRequests] = useState(allRequests);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
   const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter requests
-  const filteredRequests =
-    filterStatus === 'all'
-      ? requests
-      : requests.filter((req) => req.status === filterStatus);
+  // Filter & Search
+  const filteredRequests = requests.filter((req) => {
+    if (filterStatus !== 'all' && req.status !== filterStatus) return false;
+    if (
+      searchTerm &&
+      !req.recipientName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !req.requesterName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+      return false;
+    return true;
+  });
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRequests = filteredRequests.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
-
-  // Reset page when filter changes
-  const handleFilterChange = (status) => {
-    setFilterStatus(status);
-    setCurrentPage(1);
-  };
 
   const handleStatusChange = (id, newStatus) => {
     setRequests((prev) =>
@@ -184,7 +162,7 @@ export default function MyDonationRequestsPage() {
   };
 
   const StatusBadge = ({ status }) => {
-    const styles = {
+    const colors = {
       pending: 'bg-gray-100 text-gray-700 border-gray-200',
       inprogress: 'bg-blue-50 text-blue-700 border-blue-200',
       done: 'bg-green-50 text-green-700 border-green-200',
@@ -192,9 +170,7 @@ export default function MyDonationRequestsPage() {
     };
     return (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-          styles[status]
-        }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors[status]}`}
       >
         {status === 'inprogress'
           ? 'In Progress'
@@ -203,71 +179,46 @@ export default function MyDonationRequestsPage() {
     );
   };
 
-  const Pagination = () => {
-    if (totalPages <= 1) return null;
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
-    }
-    return (
-      <div className="flex justify-center items-center gap-2 mt-6">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-        >
-          Prev
-        </button>
-        {pages.map((page) => (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`w-9 h-9 rounded-lg text-sm font-medium ${
-              currentPage === page
-                ? 'bg-red-600 text-white shadow'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
-        >
-          Next
-        </button>
-      </div>
-    );
-  };
-
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-1">
+    <div className="space-y-6 max-w-7xl mx-auto px-1">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="text-gray-400 hover:text-red-600 transition"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-            My Donation Requests
+          <h1 className="text-2xl font-bold text-gray-900">
+            All Blood Donation Requests
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">
-            All donation requests you have created.
+          <p className="text-gray-500 text-sm">
+            Manage every donation request across the platform.
           </p>
         </div>
-        {/* Filter dropdown */}
+      </div>
+
+      {/* Filters & Search */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Search recipient or requester..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </div>
         <div className="relative">
           <select
             value={filterStatus}
-            onChange={(e) => handleFilterChange(e.target.value)}
-            className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -276,8 +227,8 @@ export default function MyDonationRequestsPage() {
             <option value="canceled">Canceled</option>
           </select>
           <Filter
-            size={16}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            size={14}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
           />
         </div>
       </div>
@@ -288,7 +239,10 @@ export default function MyDonationRequestsPage() {
           <thead className="bg-gray-50/50 border-b border-gray-100">
             <tr>
               <th className="text-left px-5 py-3 font-semibold text-gray-500">
-                Name
+                Recipient
+              </th>
+              <th className="text-left px-5 py-3 font-semibold text-gray-500">
+                Requester
               </th>
               <th className="text-left px-5 py-3 font-semibold text-gray-500">
                 Location
@@ -316,6 +270,16 @@ export default function MyDonationRequestsPage() {
                 >
                   <td className="px-5 py-4 font-medium text-gray-900">
                     {req.recipientName}
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-800">
+                        {req.requesterName}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {req.requesterEmail}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-gray-600">
                     {req.district}, {req.upazila}
@@ -382,18 +346,13 @@ export default function MyDonationRequestsPage() {
                         </>
                       )}
                     </div>
-                    {req.status === 'inprogress' && req.donorInfo && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        Donor: {req.donorInfo.name} ({req.donorInfo.email})
-                      </div>
-                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan={7}
                   className="px-5 py-12 text-center text-gray-400"
                 >
                   No donation requests found.
@@ -417,6 +376,9 @@ export default function MyDonationRequestsPage() {
                   <h3 className="font-bold text-gray-900">
                     {req.recipientName}
                   </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Requested by: {req.requesterName} ({req.requesterEmail})
+                  </p>
                   <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                     <MapPin size={12} /> {req.district}, {req.upazila}
                   </p>
@@ -432,14 +394,9 @@ export default function MyDonationRequestsPage() {
                       {req.bloodGroup}
                     </span>
                   </div>
-                  <div className="mt-3">
+                  <div className="mt-2">
                     <StatusBadge status={req.status} />
                   </div>
-                  {req.status === 'inprogress' && req.donorInfo && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      Donor: {req.donorInfo.name} ({req.donorInfo.email})
-                    </div>
-                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -488,7 +445,37 @@ export default function MyDonationRequestsPage() {
       </div>
 
       {/* Pagination */}
-      <Pagination />
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+          >
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9 rounded-lg text-sm font-medium ${
+                currentPage === page
+                  ? 'bg-red-600 text-white'
+                  : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.open && (

@@ -25,14 +25,18 @@ import Image from "next/image";
 const adminLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
-  { href: '/dashboard/all-users', label: 'All Users', icon: Users },
-  { href: '/dashboard/all-requests', label: 'All Requests', icon: Droplet },
+  { href: '/dashboard/allUsers', label: 'All Users', icon: Users },
+  { href: '/dashboard/allDonationRequests', label: 'All Requests', icon: Droplet },
 ];
 
 const volunteerLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/profile", label: "Profile", icon: User },
-  { href: '/dashboard/all-requests', label: 'All Requests', icon: Droplet },
+  {
+    href: '/dashboard/allDonationRequests',
+    label: 'All Requests',
+    icon: Droplet,
+  },
   {
     href: "/dashboard/create-request",
     label: "Create Request",

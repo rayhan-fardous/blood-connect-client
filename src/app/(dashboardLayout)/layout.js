@@ -1,16 +1,33 @@
 // app/dashboard/layout.js
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, User, Menu, X, LogOut, Activity } from 'lucide-react';
-import { useSession } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  User,
+  Menu,
+  X,
+  LogOut,
+  Activity,
+  FilePlus,
+  ClipboardList,
+} from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import Logo from "@/assets/logo.png";
+import Image from "next/image";
 
 const sidebarLinks = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
+  {
+    href: "/dashboard/create-request",
+    label: "Create Request",
+    icon: FilePlus,
+  },
+  { href: "/dashboard/requests", label: "My Requests", icon: ClipboardList },
 ];
 
 export default function DashboardLayout({ children }) {
@@ -20,9 +37,9 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const { authClient } = await import('@/lib/auth-client');
+    const { authClient } = await import("@/lib/auth-client");
     await authClient.signOut();
-    router.push('/');
+    router.push("/");
   };
 
   return (
@@ -37,19 +54,25 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-72 bg-white  z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto flex flex-col ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed top-0 left-0 h-screen w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:z-auto flex flex-col ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo & Brand */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 mt-6">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-linear-to-br from-red-600 to-rose-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-red-200 group-hover:scale-105 transition-transform">
-              <Activity size={20} />
+              <Image
+                src={Logo}
+                height={22}
+                width={22}
+                alt="BloodBridge Logo"
+                className="object-cover"
+              />
             </div>
             <div>
               <h1 className="font-extrabold text-xl tracking-tight text-gray-800">
-                Blood<span className="text-red-600">Bridge</span>
+                Blood<span className="text-red-600">Connect</span>
               </h1>
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
                 Donor Panel
@@ -76,8 +99,8 @@ export default function DashboardLayout({ children }) {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-red-50 text-red-600 shadow-sm border border-red-100'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? "bg-red-50 text-red-600 shadow-sm border border-red-100"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 }`}
               >
                 <Icon size={20} />
@@ -91,16 +114,16 @@ export default function DashboardLayout({ children }) {
         <div className="border-t border-gray-100 p-4 ">
           <div className="flex items-center gap-3 mb-3">
             <img
-              src={session?.user?.image || '/default-avatar.png'}
+              src={session?.user?.image || "/default-avatar.png"}
               alt="avatar"
               className="w-10 h-10 rounded-full object-cover border-2 border-red-100"
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-800 truncate">
-                {session?.user?.name || 'User'}
+                {session?.user?.name || "User"}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {session?.user?.email || ''}
+                {session?.user?.email || ""}
               </p>
             </div>
           </div>
@@ -133,8 +156,8 @@ export default function DashboardLayout({ children }) {
           className="flex-1 flex flex-col bg-cover bg-center bg-no-repeat bg-fixed"
           style={{
             backgroundImage: `url('https://i.ibb.co.com/8LW6kpVZ/32392668552.jpg')`,
-            backgroundBlendMode: 'soft-light',
-            backgroundColor: 'rgba(255, 240, 240, 0.65)',
+            backgroundBlendMode: "soft-light",
+            backgroundColor: "rgba(255, 240, 240, 0.65)",
           }}
         >
           {/* Children wrapped in centered container */}

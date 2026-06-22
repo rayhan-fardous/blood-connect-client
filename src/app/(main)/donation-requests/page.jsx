@@ -68,7 +68,7 @@ export default function PublicRequestsPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
             Urgent Blood Needs{' '}
-            <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">
               Near You
             </span>
           </h1>
@@ -107,15 +107,15 @@ export default function PublicRequestsPage() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Animated gradient top border – expands from left to right */}
-                <span className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-red-600 to-rose-500 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
+                <span className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-linear-to-r from-red-600 to-rose-500 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
 
                 {/* Blood group badge */}
                 <div className="flex justify-between items-start mb-4">
                   <h2 className="text-2xl font-bold text-white">
                     {req.recipientName}
                   </h2>
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-red-600/20 text-red-300 rounded-full text-sm font-bold border border-red-500/30 ">
-                    <Droplet size={16} className='' />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-5  text-red-500 rounded-full text-sm font-bold shadow-sm shadow-red-500 ">
+                    <Droplet size={16} className="" />
                     {req.bloodGroup}
                   </span>
                 </div>

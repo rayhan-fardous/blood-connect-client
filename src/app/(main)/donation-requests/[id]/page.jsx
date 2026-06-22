@@ -291,7 +291,7 @@ export default function RequestDetailsPage({ params }) {
           {request.status === 'pending' && (
             <button
               onClick={() => setShowModal(true)}
-              className="mt-8 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-red-600/25"
+              className="mt-8 w-full flex items-center justify-center gap-2 bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-red-600/25"
             >
               <Heart size={20} />I Want to Donate
             </button>
@@ -345,7 +345,7 @@ export default function RequestDetailsPage({ params }) {
                 <button
                   onClick={handleConfirmDonation}
                   disabled={confirming}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
+                  className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
                 >
                   {confirming ? (
                     <Loader2 size={20} className="animate-spin" />

@@ -1,57 +1,43 @@
 // app/(dashboardLayout)/funding/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
-import {
-  HandCoins,
-  Search,
-  Loader2,
-  DollarSign,
-  Users,
-  TrendingUp,
-  Sparkles,
-} from 'lucide-react';
+import { HandCoins, Loader2, DollarSign, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Dummy data
-const allFundings = [
-  { id: 'f1', donorName: 'Fahim Ahmed', amount: 750, date: '2026-04-05' },
-  { id: 'f2', donorName: 'Nafisa Islam', amount: 1500, date: '2026-04-07' },
-  { id: 'f3', donorName: 'Tanvir Hossain', amount: 400, date: '2026-04-10' },
-  { id: 'f4', donorName: 'Jannatul Ferdous', amount: 950, date: '2026-04-12' },
-  { id: 'f5', donorName: 'Rakibul Hasan', amount: 250, date: '2026-04-14' },
-  { id: 'f6', donorName: 'Shamima Akter', amount: 1200, date: '2026-04-16' },
-  { id: 'f7', donorName: 'Mizanur Rahman', amount: 3000, date: '2026-04-18' },
-  { id: 'f8', donorName: 'Farzana Yasmin', amount: 650, date: '2026-04-20' },
-  { id: 'f9', donorName: 'Mehedi Hasan', amount: 1800, date: '2026-04-22' },
-  { id: 'f10', donorName: 'Sadia Rahman', amount: 500, date: '2026-04-25' },
-  { id: 'f11', donorName: 'Arif Khan', amount: 2200, date: '2026-04-27' },
-  { id: 'f12', donorName: 'Tania Sultana', amount: 850, date: '2026-04-29' },
-  { id: 'f13', donorName: 'Imran Hossain', amount: 1300, date: '2026-05-02' },
-  { id: 'f14', donorName: 'Lima Chowdhury', amount: 450, date: '2026-05-04' },
-  { id: 'f15', donorName: 'Sabbir Ahmed', amount: 1750, date: '2026-05-06' },
-];
 
 const ITEMS_PER_PAGE = 5;
 
 export default function FundingPage() {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [fundings, setFundings] = useState(allFundings);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [fundings, setFundings] = useState([]);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [fundAmount, setFundAmount] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  const totalDonors = new Set(fundings.map((f) => f.donorName)).size;
-  const totalAmount = fundings.reduce((sum, f) => sum + f.amount, 0);
+  // Fetch real funding data from backend
+  useEffect(() => {
+    fetch('http://localhost:5000/api/funding')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
+      .then((data) => {
+        setFundings(data);
+        setFetchLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setFetchLoading(false);
+      });
+  }, []);
 
-  const filtered = fundings.filter((f) =>
-    f.donorName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
+  // Pagination logic (no filtering anymore)
+  const totalPages = Math.ceil(fundings.length / ITEMS_PER_PAGE);
+  const paginated = fundings.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -62,9 +48,10 @@ export default function FundingPage() {
       return;
     }
     setPaymentLoading(true);
+    // Simulate Stripe / backend call – later replace with real payment flow
     setTimeout(() => {
       const newFunding = {
-        id: `f${fundings.length + 1}`,
+        _id: `temp${Date.now()}`,
         donorName: session?.user?.name || 'You',
         amount: Number(fundAmount),
         date: new Date().toISOString().split('T')[0],
@@ -77,7 +64,8 @@ export default function FundingPage() {
     }, 1500);
   };
 
-  if (sessionLoading) {
+  // Loading / error states
+  if (sessionLoading || fetchLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0b0f1c]">
         <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
@@ -85,12 +73,19 @@ export default function FundingPage() {
     );
   }
 
-  return (
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0b0f1c]">
+        <p className="text-red-400">Failed to load data: {error}</p>
+      </div>
+    );
+  }
 
-    <div className="min-h-screen max-w-full  bg-[#0b0f1c]  px-4 md:px-8 py-8 pt-38">
+    return (
+    <div className="min-h-screen max-w-full bg-[#0b0f1c] px-4 md:px-8 py-8 pt-38">
       <div className="max-w-6xl mx-auto space-y-8">
     
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#2d1b3e] p-8 md:p-10 text-white shadow-xl">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#0f172a] via-[#1e1b4b] to-[#2d1b3e] p-8 md:p-10 text-white shadow-xl">
           <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-600/10 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -101,7 +96,7 @@ export default function FundingPage() {
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold mt-4 tracking-tight">
                 Funding{' '}
-                <span className="bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
                   Platform
                 </span>
               </h1>
@@ -121,13 +116,10 @@ export default function FundingPage() {
 
         {/* Table */}
         <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <HandCoins size={20} className="text-red-400" />
-              Recent Donations
-            </h2>
-
-          </div>
+          <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+            <HandCoins size={20} className="text-red-400" />
+            Recent Donations
+          </h2>
 
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
@@ -148,7 +140,7 @@ export default function FundingPage() {
               <tbody className="divide-y divide-gray-800">
                 {paginated.map((fund) => (
                   <tr
-                    key={fund.id}
+                    key={fund._id}
                     className="hover:bg-white/5 transition-colors"
                   >
                     <td className="px-5 py-4 font-medium text-white">
@@ -184,7 +176,7 @@ export default function FundingPage() {
           <div className="md:hidden space-y-3">
             {paginated.map((fund) => (
               <div
-                key={fund.id}
+                key={fund._id}
                 className="bg-white/5 border border-white/10 rounded-2xl p-4 flex justify-between items-center"
               >
                 <div>
@@ -283,7 +275,7 @@ export default function FundingPage() {
                   <button
                     onClick={handleGiveFund}
                     disabled={paymentLoading}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
+                    className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
                   >
                     {paymentLoading ? (
                       <Loader2 size={20} className="animate-spin" />

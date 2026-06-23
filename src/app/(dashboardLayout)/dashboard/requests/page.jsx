@@ -1,8 +1,8 @@
-// app/dashboard/my-donation-requests/page.jsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 import {
   Eye,
   Pencil,
@@ -15,180 +15,120 @@ import {
   Clock,
   ArrowLeft,
   Filter,
-} from 'lucide-react';
-import toast from 'react-hot-toast';
+  Loader2,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-// Dummy data for all donation requests (replace with API later)
-const allRequestsData = [
-  {
-    id: 'req-1',
-    recipientName: 'Nayeem Hasan',
-    requesterName: 'Farzana Akter',
-    requesterEmail: 'farzana@example.com',
-    district: 'Mymensingh',
-    upazila: 'Trishal',
-    donationDate: '2026-04-10',
-    donationTime: '09:30 AM',
-    bloodGroup: 'O+',
-    status: 'pending',
-  },
-  {
-    id: 'req-2',
-    recipientName: 'Jannatul Ferdous',
-    requesterName: 'Mehedi Hasan',
-    requesterEmail: 'mehedi@example.com',
-    district: 'Comilla',
-    upazila: 'Kotwali',
-    donationDate: '2026-04-12',
-    donationTime: '01:00 PM',
-    bloodGroup: 'A+',
-    status: 'inprogress',
-  },
-  {
-    id: 'req-3',
-    recipientName: 'Mahmudul Islam',
-    requesterName: 'Nusrat Chowdhury',
-    requesterEmail: 'nusrat.c@example.com',
-    district: 'Rangpur',
-    upazila: 'Gangachara',
-    donationDate: '2026-04-15',
-    donationTime: '11:45 AM',
-    bloodGroup: 'B-',
-    status: 'done',
-  },
-  {
-    id: 'req-4',
-    recipientName: 'Sadia Rahman',
-    requesterName: 'Tanvir Ahmed',
-    requesterEmail: 'tanvir@example.com',
-    district: 'Jessore',
-    upazila: 'Sadar',
-    donationDate: '2026-04-18',
-    donationTime: '04:00 PM',
-    bloodGroup: 'AB+',
-    status: 'pending',
-  },
-  {
-    id: 'req-5',
-    recipientName: 'Rakibul Hasan',
-    requesterName: 'Shamima Akter',
-    requesterEmail: 'shamima@example.com',
-    district: 'Bogura',
-    upazila: 'Shibganj',
-    donationDate: '2026-04-20',
-    donationTime: '08:15 AM',
-    bloodGroup: 'O-',
-    status: 'canceled',
-  },
-  {
-    id: 'req-6',
-    recipientName: 'Tania Sultana',
-    requesterName: 'Arif Hossain',
-    requesterEmail: 'arif@example.com',
-    district: 'Noakhali',
-    upazila: 'Begumganj',
-    donationDate: '2026-04-23',
-    donationTime: '03:30 PM',
-    bloodGroup: 'A-',
-    status: 'inprogress',
-  },
-  {
-    id: 'req-7',
-    recipientName: 'Mizanur Rahman',
-    requesterName: 'Sabbir Khan',
-    requesterEmail: 'sabbir@example.com',
-    district: 'Dinajpur',
-    upazila: 'Birganj',
-    donationDate: '2026-04-25',
-    donationTime: '10:45 AM',
-    bloodGroup: 'B+',
-    status: 'done',
-  },
-  {
-    id: 'req-8',
-    recipientName: 'Nafisa Islam',
-    requesterName: 'Fahim Ahmed',
-    requesterEmail: 'fahim@example.com',
-    district: 'Sylhet',
-    upazila: 'Beanibazar',
-    donationDate: '2026-04-28',
-    donationTime: '12:30 PM',
-    bloodGroup: 'AB-',
-    status: 'pending',
-  },
-  {
-    id: 'req-9',
-    recipientName: 'Imran Hossain',
-    district: 'Chittagong',
-    upazila: 'Kotwali',
-    donationDate: '2026-04-08',
-    donationTime: '10:15 AM',
-    bloodGroup: 'A+',
-    status: 'pending',
-    donorInfo: null,
-  },
-  {
-    id: 'req-10',
-    recipientName: 'Zara Ahmed',
-    district: 'Sylhet',
-    upazila: 'Moulvibazar',
-    donationDate: '2026-04-11',
-    donationTime: '11:45 AM',
-    bloodGroup: 'O-',
-    status: 'done',
-    donorInfo: { name: 'Karim Uddin', email: 'karim@example.com' },
-  },
-];
-
-const ITEMS_PER_PAGE = 4; // Adjust as needed
+const ITEMS_PER_PAGE = 4;
 
 export default function MyDonationRequestsPage() {
-  const [requests, setRequests] = useState(allRequestsData);
+  const { data: session, isPending: sessionLoading } = useSession();
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter requests
+  // Fetch only the current donor's requests
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    setLoading(true);
+    fetch(
+      `http://localhost:5000/api/my-donation-requests?email=${session.user.email}`,
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch requests");
+        return res.json();
+      })
+      .then((data) => {
+        setRequests(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [session?.user?.email]);
+
+  // Filter by status
   const filteredRequests =
-    filterStatus === 'all'
+    filterStatus === "all"
       ? requests
       : requests.filter((req) => req.status === filterStatus);
 
-  // Pagination logic
+  // Pagination
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRequests = filteredRequests.slice(
     startIndex,
-    startIndex + ITEMS_PER_PAGE
+    startIndex + ITEMS_PER_PAGE,
   );
 
-  // Reset page when filter changes
   const handleFilterChange = (status) => {
     setFilterStatus(status);
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    setRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req))
-    );
-    toast.success(`Request marked as ${newStatus}`);
+  // Status change – calls backend PUT
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/donation-requests/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        },
+      );
+      const data = await res.json();
+      if (data.success) {
+        setRequests((prev) =>
+          prev.map((req) =>
+            req._id === id ? { ...req, status: newStatus } : req,
+          ),
+        );
+        toast.success(`Request marked as ${newStatus}`);
+      } else {
+        toast.error(data.message || "Update failed");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    }
   };
 
-  const handleDelete = () => {
+  // Delete – calls backend DELETE
+  const handleDelete = async () => {
     const { id } = deleteModal;
     if (!id) return;
-    setRequests((prev) => prev.filter((req) => req.id !== id));
-    setDeleteModal({ open: false, id: null });
-    toast.success('Request deleted');
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/donation-requests/${id}`,
+        {
+          method: "DELETE",
+        },
+      );
+      const data = await res.json();
+      if (data.success) {
+        setRequests((prev) => prev.filter((req) => req._id !== id));
+        toast.success("Request deleted");
+      } else {
+        toast.error(data.message || "Deletion failed");
+      }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setDeleteModal({ open: false, id: null });
+    }
   };
 
   const StatusBadge = ({ status }) => {
     const styles = {
-      pending: 'bg-gray-100 text-gray-700 border-gray-200',
-      inprogress: 'bg-blue-50 text-blue-700 border-blue-200',
-      done: 'bg-green-50 text-green-700 border-green-200',
-      canceled: 'bg-red-50 text-red-700 border-red-200',
+      pending: "bg-gray-100 text-gray-700 border-gray-200",
+      inprogress: "bg-blue-50 text-blue-700 border-blue-200",
+      done: "bg-green-50 text-green-700 border-green-200",
+      canceled: "bg-red-50 text-red-700 border-red-200",
     };
     return (
       <span
@@ -196,8 +136,8 @@ export default function MyDonationRequestsPage() {
           styles[status]
         }`}
       >
-        {status === 'inprogress'
-          ? 'In Progress'
+        {status === "inprogress"
+          ? "In Progress"
           : status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -205,10 +145,7 @@ export default function MyDonationRequestsPage() {
 
   const Pagination = () => {
     if (totalPages <= 1) return null;
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
-    }
+
     return (
       <div className="flex justify-center items-center gap-2 mt-6">
         <button
@@ -218,14 +155,14 @@ export default function MyDonationRequestsPage() {
         >
           Prev
         </button>
-        {pages.map((page) => (
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
             onClick={() => setCurrentPage(page)}
             className={`w-9 h-9 rounded-lg text-sm font-medium ${
               currentPage === page
-                ? 'bg-red-600 text-white shadow'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                ? "bg-red-600 text-white shadow"
+                : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
             }`}
           >
             {page}
@@ -244,6 +181,30 @@ export default function MyDonationRequestsPage() {
     );
   };
 
+  // Show loading while session or fetch is pending
+  if (sessionLoading || loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+      </div>
+    );
+  }
+
+  // Show error
+  if (error) {
+    return (
+      <div className="text-center py-12 text-red-500">
+        <p>Error: {error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 text-sm underline"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-1">
       {/* Header */}
@@ -258,7 +219,7 @@ export default function MyDonationRequestsPage() {
             </Link>
             My Donation Requests
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <p className="text-gray-700 mt-1 text-sm pl-8">
             All donation requests you have created.
           </p>
         </div>
@@ -288,7 +249,7 @@ export default function MyDonationRequestsPage() {
           <thead className="bg-gray-50/50 border-b border-gray-100">
             <tr>
               <th className="text-left px-5 py-3 font-semibold text-gray-500">
-                Name
+                Recipient Name
               </th>
               <th className="text-left px-5 py-3 font-semibold text-gray-500">
                 Location
@@ -311,7 +272,7 @@ export default function MyDonationRequestsPage() {
             {paginatedRequests.length > 0 ? (
               paginatedRequests.map((req) => (
                 <tr
-                  key={req.id}
+                  key={req._id}
                   className="hover:bg-gray-50/30 transition-colors"
                 >
                   <td className="px-5 py-4 font-medium text-gray-900">
@@ -322,9 +283,9 @@ export default function MyDonationRequestsPage() {
                   </td>
                   <td className="px-5 py-4 text-gray-600">
                     <span className="block">
-                      {new Date(req.donationDate).toLocaleDateString('en-BD')}
+                      {new Date(req.donationDate).toLocaleDateString("en-BD")}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-700 pl-4">
                       {req.donationTime}
                     </span>
                   </td>
@@ -339,14 +300,14 @@ export default function MyDonationRequestsPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/dashboard/requests/${req.id}`}
+                        href={`/dashboard/requests/${req._id}`}
                         className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                         title="View Details"
                       >
                         <Eye size={16} />
                       </Link>
                       <Link
-                        href={`/dashboard/requests/${req.id}/edit`}
+                        href={`/dashboard/requests/${req._id}/edit`}
                         className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
                         title="Edit Request"
                       >
@@ -354,17 +315,17 @@ export default function MyDonationRequestsPage() {
                       </Link>
                       <button
                         onClick={() =>
-                          setDeleteModal({ open: true, id: req.id })
+                          setDeleteModal({ open: true, id: req._id })
                         }
                         className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         title="Delete Request"
                       >
                         <Trash2 size={16} />
                       </button>
-                      {req.status === 'inprogress' && (
+                      {req.status === "inprogress" && (
                         <>
                           <button
-                            onClick={() => handleStatusChange(req.id, 'done')}
+                            onClick={() => handleStatusChange(req._id, "done")}
                             className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
                             title="Mark as Done"
                           >
@@ -372,7 +333,7 @@ export default function MyDonationRequestsPage() {
                           </button>
                           <button
                             onClick={() =>
-                              handleStatusChange(req.id, 'canceled')
+                              handleStatusChange(req._id, "canceled")
                             }
                             className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                             title="Cancel Request"
@@ -382,9 +343,9 @@ export default function MyDonationRequestsPage() {
                         </>
                       )}
                     </div>
-                    {req.status === 'inprogress' && req.donorInfo && (
+                    {req.status === "inprogress" && req.donorName && (
                       <div className="mt-2 text-xs text-gray-500">
-                        Donor: {req.donorInfo.name} ({req.donorInfo.email})
+                        Donor: {req.donorName} ({req.donorEmail})
                       </div>
                     )}
                   </td>
@@ -409,7 +370,7 @@ export default function MyDonationRequestsPage() {
         {paginatedRequests.length > 0 ? (
           paginatedRequests.map((req) => (
             <div
-              key={req.id}
+              key={req._id}
               className="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 p-4 shadow-sm"
             >
               <div className="flex justify-between items-start">
@@ -422,8 +383,8 @@ export default function MyDonationRequestsPage() {
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
                     <span className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
-                      <Calendar size={12} />{' '}
-                      {new Date(req.donationDate).toLocaleDateString('en-BD')}
+                      <Calendar size={12} />{" "}
+                      {new Date(req.donationDate).toLocaleDateString("en-BD")}
                     </span>
                     <span className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
                       <Clock size={12} /> {req.donationTime}
@@ -435,41 +396,41 @@ export default function MyDonationRequestsPage() {
                   <div className="mt-3">
                     <StatusBadge status={req.status} />
                   </div>
-                  {req.status === 'inprogress' && req.donorInfo && (
+                  {req.status === "inprogress" && req.donorName && (
                     <div className="mt-2 text-xs text-gray-500">
-                      Donor: {req.donorInfo.name} ({req.donorInfo.email})
+                      Donor: {req.donorName} ({req.donorEmail})
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Link
-                    href={`/dashboard/requests/${req.id}`}
+                    href={`/dashboard/requests/${req._id}`}
                     className="text-blue-600"
                   >
                     <Eye size={18} />
                   </Link>
                   <Link
-                    href={`/dashboard/requests/${req.id}/edit`}
+                    href={`/dashboard/requests/${req._id}/edit`}
                     className="text-emerald-600"
                   >
                     <Pencil size={18} />
                   </Link>
                   <button
-                    onClick={() => setDeleteModal({ open: true, id: req.id })}
+                    onClick={() => setDeleteModal({ open: true, id: req._id })}
                     className="text-red-600"
                   >
                     <Trash2 size={18} />
                   </button>
-                  {req.status === 'inprogress' && (
+                  {req.status === "inprogress" && (
                     <>
                       <button
-                        onClick={() => handleStatusChange(req.id, 'done')}
+                        onClick={() => handleStatusChange(req._id, "done")}
                         className="text-green-600"
                       >
                         <CheckCircle size={18} />
                       </button>
                       <button
-                        onClick={() => handleStatusChange(req.id, 'canceled')}
+                        onClick={() => handleStatusChange(req._id, "canceled")}
                         className="text-red-600"
                       >
                         <XCircle size={18} />

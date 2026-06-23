@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:z-auto flex flex-col ${
+        className={`fixed top-0 left-0 h-screen w-72 bg-gray-100 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:z-auto flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }) {
                 src={Logo}
                 height={22}
                 width={22}
-                alt="BloodBridge Logo"
+                alt="BloodConnect Logo"
                 className="object-cover"
               />
             </div>

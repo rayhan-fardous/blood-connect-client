@@ -22,7 +22,7 @@ import { authClient } from "@/lib/auth-client";
 import districtsRaw from "../../../data/districts.json";
 import upazilasRaw from "../../../data/upazilas.json";
 
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const districtsInfo = districtsRaw[2].data;
 const upazilasInfo = upazilasRaw[2].data;
@@ -160,26 +160,15 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      // Better Auth sign-up
       const { data, error: signUpError } = await authClient.signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.fullName,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
+        image: formData.avatarUrl,
         bloodGroup: formData.bloodGroup,
         district: formData.district,
         upazila: formData.upazila,
         phone: formData.phone,
-        avatarUrl: formData.avatarUrl,
-        // Additional data as metadata (if your schema supports it)
-        metadata: {
-          bloodGroup: formData.bloodGroup,
-          district: formData.district,
-          upazila: formData.upazila,
-          phone: formData.phone,
-          avatarUrl: formData.avatarUrl,
-        },
       });
 
       if (signUpError) {

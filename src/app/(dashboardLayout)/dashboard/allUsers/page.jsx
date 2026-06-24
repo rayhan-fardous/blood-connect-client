@@ -1,120 +1,63 @@
-// components/dashboards/AllUsers.jsx
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import {
   Search,
   Filter,
   ShieldCheck,
-  ShieldAlert,
   UserX,
   UserCheck,
   Shield,
-  ArrowUp,
-  ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Dummy user data (replace with API)
-const allUsersData = [
-  {
-    id: 'u1',
-    name: 'Karim Uddin',
-    email: 'karim@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'active',
-  },
-  {
-    id: 'u2',
-    name: 'Ayesha Siddiqua',
-    email: 'ayesha@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'active',
-  },
-  {
-    id: 'u3',
-    name: 'Rafiq Hasan',
-    email: 'rafiq@example.com',
-    avatar: '/default-avatar.png',
-    role: 'volunteer',
-    status: 'active',
-  },
-  {
-    id: 'u4',
-    name: 'Sumaiya Akter',
-    email: 'sumaiya@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'blocked',
-  },
-  {
-    id: 'u5',
-    name: 'Abul Kalam',
-    email: 'abul@example.com',
-    avatar: '/default-avatar.png',
-    role: 'admin',
-    status: 'active',
-  },
-  {
-    id: 'u6',
-    name: 'Fatema Begum',
-    email: 'fatema@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'active',
-  },
-  {
-    id: 'u7',
-    name: 'Sohan Rahman',
-    email: 'sohan@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'blocked',
-  },
-  {
-    id: 'u8',
-    name: 'Nusrat Jahan',
-    email: 'nusrat@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'active',
-  },
-  {
-    id: 'u9',
-    name: 'Maruf Hasan',
-    email: 'maruf@example.com',
-    avatar: '/default-avatar.png',
-    role: 'volunteer',
-    status: 'active',
-  },
-  {
-    id: 'u10',
-    name: 'Lima Chowdhury',
-    email: 'lima@example.com',
-    avatar: '/default-avatar.png',
-    role: 'donor',
-    status: 'blocked',
-  },
-];
 
 const ITEMS_PER_PAGE = 5;
 
 const AllUsers = () => {
-  const [users, setUsers] = useState(allUsersData);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter users
+  const fetchUsers = () => {
+    setLoading(true);
+    fetch('http://localhost:5000/api/users')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch users');
+        return res.json();
+      })
+      .then((data) => {
+       
+        const normalized = data.map((u) => ({
+          ...u,
+          id: u._id ? u._id.toString() : u.id, 
+          roll: (u.roll || 'donor').toLowerCase(),
+          status: (u.status || 'active').toLowerCase(),
+        }));
+        setUsers(normalized);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+
   const filteredUsers = users.filter((user) => {
     if (statusFilter !== 'all' && user.status !== statusFilter) return false;
     if (
       searchTerm &&
-      !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      !user?.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !user?.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
       return false;
     return true;
@@ -126,40 +69,32 @@ const AllUsers = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleBlock = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, status: 'blocked' } : user
-      )
-    );
-    toast.success('User blocked');
+  const updateUser = async (email, body) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, ...body }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchUsers(); // refresh list
+        toast.success('User updated');
+      } else {
+        toast.error(data.message || 'Update failed');
+      }
+    } catch (err) {
+      toast.error('Network error');
+    }
   };
 
-  const handleUnblock = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, status: 'active' } : user
-      )
-    );
-    toast.success('User unblocked');
-  };
+  const handleBlock = (email) => updateUser(email, { status: 'blocked' });
+  const handleUnblock = (email) => updateUser(email, { status: 'active' });
+  const handleMakeVolunteer = (email) =>
+    updateUser(email, { role: 'volunteer' });
+  const handleMakeAdmin = (email) => updateUser(email, { role: 'admin' });
 
-  const handleMakeVolunteer = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, role: 'volunteer' } : user
-      )
-    );
-    toast.success('User role changed to volunteer');
-  };
-
-  const handleMakeAdmin = (id) => {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, role: 'admin' } : user))
-    );
-    toast.success('User role changed to admin');
-  };
-
+  // Role badge
   const roleBadge = (role) => {
     const colors = {
       donor: 'bg-gray-100 text-gray-700 border-gray-200',
@@ -175,6 +110,7 @@ const AllUsers = () => {
     );
   };
 
+  // Status badge
   const statusBadge = (status) => {
     const colors =
       status === 'active'
@@ -184,15 +120,29 @@ const AllUsers = () => {
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors}`}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status === 'active' ? 'Active' : 'Blocked'}
       </span>
     );
   };
 
-  const resetPage = (fn) => {
-    fn();
-    setCurrentPage(1);
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-red-500">
+        <p>{error}</p>
+        <button onClick={fetchUsers} className="underline mt-2">
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-1">
@@ -214,14 +164,20 @@ const AllUsers = () => {
             type="text"
             placeholder="Search name or email..."
             value={searchTerm}
-            onChange={(e) => resetPage(() => setSearchTerm(e.target.value))}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
         <div className="relative">
           <select
             value={statusFilter}
-            onChange={(e) => resetPage(() => setStatusFilter(e.target.value))}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             <option value="all">All Status</option>
@@ -259,68 +215,79 @@ const AllUsers = () => {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50/30 transition-colors"
-                >
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-8 h-8 rounded-full object-cover border border-gray-200"
-                      />
-                      <span className="font-medium text-gray-900">
-                        {user.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600">{user.email}</td>
-                  <td className="px-5 py-4">{roleBadge(user.role)}</td>
-                  <td className="px-5 py-4">{statusBadge(user.status)}</td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      {user.status === 'active' && (
-                        <button
-                          onClick={() => handleBlock(user.id)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Block User"
-                        >
-                          <UserX size={16} />
-                        </button>
-                      )}
-                      {user.status === 'blocked' && (
-                        <button
-                          onClick={() => handleUnblock(user.id)}
-                          className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
-                          title="Unblock User"
-                        >
-                          <UserCheck size={16} />
-                        </button>
-                      )}
-                      {user.role !== 'volunteer' && (
-                        <button
-                          onClick={() => handleMakeVolunteer(user.id)}
-                          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                          title="Make Volunteer"
-                        >
-                          <Shield size={16} />
-                        </button>
-                      )}
-                      {user.role !== 'admin' && (
-                        <button
-                          onClick={() => handleMakeAdmin(user.id)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Make Admin"
-                        >
-                          <ShieldCheck size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+              paginatedUsers.map((user) => {
+                const role = user.roll || 'donor';
+                const status = user.status || 'active';
+                const email = user.email; // required for update
+
+                return (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50/30 transition-colors"
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.image || '/default-avatar.png'}
+                          alt={user.name}
+                          className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                        />
+                        <span className="font-medium text-gray-900">
+                          {user.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600">{user.email}</td>
+                    <td className="px-5 py-4">{roleBadge(role)}</td>
+                    <td className="px-5 py-4">{statusBadge(status)}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        {/* Block / Unblock */}
+                        {status === 'active' && (
+                          <button
+                            onClick={() => handleBlock(email)}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Block User"
+                          >
+                            <UserX size={16} />
+                          </button>
+                        )}
+                        {status === 'blocked' && (
+                          <button
+                            onClick={() => handleUnblock(email)}
+                            className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                            title="Unblock User"
+                          >
+                            <UserCheck size={16} />
+                          </button>
+                        )}
+
+                        {/* Make Volunteer (only if donor) */}
+                        {role === 'donor' && (
+                          <button
+                            onClick={() => handleMakeVolunteer(email)}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                            title="Make Volunteer"
+                          >
+                            <Shield size={16} />
+                          </button>
+                        )}
+
+                        {/* Make Admin (if not already admin) */}
+                        {role !== 'admin' && (
+                          <button
+                            onClick={() => handleMakeAdmin(email)}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Make Admin"
+                          >
+                            <ShieldCheck size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
@@ -338,64 +305,70 @@ const AllUsers = () => {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {paginatedUsers.length > 0 ? (
-          paginatedUsers.map((user) => (
-            <div
-              key={user.id}
-              className="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 p-4 shadow-sm"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
+          paginatedUsers.map((user) => {
+            const role = user.roll || 'donor';
+            const status = user.status || 'active';
+            const email = user.email;
+
+            return (
+              <div
+                key={user.id}
+                className="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 p-4 shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <img
+                    src={user.image || '/default-avatar.png'}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <div className="flex gap-2">
-                  {roleBadge(user.role)}
-                  {statusBadge(user.status)}
-                </div>
-                <div className="flex items-center gap-2">
-                  {user.status === 'active' && (
-                    <button
-                      onClick={() => handleBlock(user.id)}
-                      className="text-red-600"
-                    >
-                      <UserX size={18} />
-                    </button>
-                  )}
-                  {user.status === 'blocked' && (
-                    <button
-                      onClick={() => handleUnblock(user.id)}
-                      className="text-emerald-600"
-                    >
-                      <UserCheck size={18} />
-                    </button>
-                  )}
-                  {user.role !== 'volunteer' && (
-                    <button
-                      onClick={() => handleMakeVolunteer(user.id)}
-                      className="text-blue-600"
-                    >
-                      <Shield size={18} />
-                    </button>
-                  )}
-                  {user.role !== 'admin' && (
-                    <button
-                      onClick={() => handleMakeAdmin(user.id)}
-                      className="text-red-600"
-                    >
-                      <ShieldCheck size={18} />
-                    </button>
-                  )}
+                  <div className="flex gap-2">
+                    {roleBadge(role)}
+                    {statusBadge(status)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {status === 'active' && (
+                      <button
+                        onClick={() => handleBlock(email)}
+                        className="text-red-600"
+                      >
+                        <UserX size={18} />
+                      </button>
+                    )}
+                    {status === 'blocked' && (
+                      <button
+                        onClick={() => handleUnblock(email)}
+                        className="text-emerald-600"
+                      >
+                        <UserCheck size={18} />
+                      </button>
+                    )}
+                    {role === 'donor' && (
+                      <button
+                        onClick={() => handleMakeVolunteer(email)}
+                        className="text-blue-600"
+                      >
+                        <Shield size={18} />
+                      </button>
+                    )}
+                    {role !== 'admin' && (
+                      <button
+                        onClick={() => handleMakeAdmin(email)}
+                        className="text-red-600"
+                      >
+                        <ShieldCheck size={18} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+          );
+          })
         ) : (
           <p className="text-center text-gray-400 py-12">No users found.</p>
         )}

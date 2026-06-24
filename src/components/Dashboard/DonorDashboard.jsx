@@ -1,7 +1,7 @@
 // app/dashboard/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import {
   Droplet,
@@ -32,70 +32,91 @@ export default function DonorDashboard() {
   const { data: session, isPending } = useSession();
   const user = session?.user;
 
-  // Dummy donor’s own requests (replace with API call later)
-  const [myRequests, setMyRequests] = useState([
-    {
-      id: 'req-1',
-      recipientName: 'Rahim Uddin',
-      district: 'Dhaka',
-      upazila: 'Dhanmondi',
-      donationDate: '2026-03-15',
-      donationTime: '10:00 AM',
-      bloodGroup: 'A+',
-      status: 'pending',
-      donorInfo: null,
-    },
-    {
-      id: 'req-2',
-      recipientName: 'Sumaiya Akter',
-      district: 'Chittagong',
-      upazila: 'Panchlaish',
-      donationDate: '2026-03-18',
-      donationTime: '02:30 PM',
-      bloodGroup: 'O-',
-      status: 'inprogress',
-      donorInfo: { name: 'Karim Uddin', email: 'karim@example.com' },
-    },
-    {
-      id: 'req-3',
-      recipientName: 'Abul Kalam',
-      district: 'Rajshahi',
-      upazila: 'Boalia',
-      donationDate: '2026-03-20',
-      donationTime: '11:15 AM',
-      bloodGroup: 'AB+',
-      status: 'done',
-      donorInfo: { name: 'Karim Uddin', email: 'karim@example.com' },
-    },
-  ]);
+  const [myRequests, setMyRequests] = useState([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestsError, setRequestsError] = useState(null);
 
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-  // Keep existing user metadata fallbacks
-  const bloodGroup = user?.metadata?.bloodGroup || user?.bloodGroup || 'A+';
-  const phone = user?.metadata?.phone || user?.phone || 'Not provided';
-  const location = user?.metadata?.district
-    ? `${user?.metadata?.upazila}, ${user?.metadata?.district}`
-    : 'Dhaka, Bangladesh';
 
-  // Get only 3 most recent (sorted by date descending)
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch(`http://localhost:5000/api/donation-requests?email=${user.email}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch requests');
+        return res.json();
+      })
+      .then((data) => {
+        setMyRequests(data);
+        setRequestsLoading(false);
+      })
+      .catch((err) => {
+        setRequestsError(err.message);
+        setRequestsLoading(false);
+      });
+  }, [user?.email]);
+
+ 
+  const bloodGroup = user?.bloodGroup || 'N/A';
+  const phone = user?.phone || 'Not provided';
+  const location = user?.district
+    ? `${user.upazila || ''}, ${user.district}`
+    : 'Not set';
+
+
+ 
   const recentRequests = [...myRequests]
     .sort((a, b) => new Date(b.donationDate) - new Date(a.donationDate))
     .slice(0, 3);
 
-  const handleStatusChange = (id, newStatus) => {
-    setMyRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req))
-    );
-    toast.success(`Request marked as ${newStatus}`);
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/donation-requests/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        setMyRequests((prev) =>
+          prev.map((req) =>
+            req._id === id ? { ...req, status: newStatus } : req
+          )
+        );
+        toast.success(`Request marked as ${newStatus}`);
+      } else {
+        toast.error(data.message || 'Update failed');
+      }
+    } catch (err) {
+      toast.error('Network error');
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const { id } = deleteModal;
     if (!id) return;
-    setMyRequests((prev) => prev.filter((req) => req.id !== id));
-    setDeleteModal({ open: false, id: null });
-    toast.success('Request deleted');
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/donation-requests/${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        setMyRequests((prev) => prev.filter((req) => req._id !== id));
+        toast.success('Request deleted');
+      } else {
+        toast.error(data.message || 'Deletion failed');
+      }
+    } catch (err) {
+      toast.error('Network error');
+    } finally {
+      setDeleteModal({ open: false, id: null });
+    }
   };
 
   const StatusBadge = ({ status }) => {
@@ -107,9 +128,7 @@ export default function DonorDashboard() {
     };
     return (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-          styles[status]
-        }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[status]}`}
       >
         {status === 'inprogress'
           ? 'In Progress'
@@ -118,7 +137,7 @@ export default function DonorDashboard() {
     );
   };
 
-  if (isPending) {
+  if (isPending || requestsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
@@ -135,9 +154,17 @@ export default function DonorDashboard() {
     );
   }
 
+  if (requestsError) {
+    return (
+      <div className="text-center py-12 text-red-500">
+        <p>Error loading requests: {requestsError}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-1">
-      {/* Premium Welcome Banner */}
+      {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#2d1b3e] p-8 md:p-10 text-white shadow-xl shadow-indigo-500/10">
         <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-bl from-red-600/20 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-tr from-rose-600/10 to-transparent rounded-full blur-3xl" />
@@ -172,7 +199,7 @@ export default function DonorDashboard() {
         </div>
       </div>
 
-      {/* Stats Grid – Glassmorphism */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="relative overflow-hidden rounded-2xl bg-white/40 backdrop-blur-md border border-white/60 shadow-lg shadow-gray-100/50 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-red-100/40 rounded-bl-full -mr-4 -mt-4" />
@@ -199,7 +226,9 @@ export default function DonorDashboard() {
                 <Award size={20} />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">3 Bags</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {myRequests.length} Bags
+            </p>
           </div>
         </div>
         <div className="relative overflow-hidden rounded-2xl bg-white/40 backdrop-blur-md border border-white/60 shadow-lg shadow-gray-100/50 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
@@ -230,12 +259,14 @@ export default function DonorDashboard() {
                 <Heart size={20} />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">9</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {Math.max(0, myRequests.length * 3)}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* ========== MY RECENT DONATION REQUESTS ========== */}
+      {/* MY RECENT DONATION REQUESTS */}
       {recentRequests.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -258,7 +289,7 @@ export default function DonorDashboard() {
               <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-5 py-3 font-semibold text-gray-500">
-                    Full Name
+                    Recipient
                   </th>
                   <th className="text-left px-5 py-3 font-semibold text-gray-500">
                     Location
@@ -280,7 +311,7 @@ export default function DonorDashboard() {
               <tbody className="divide-y divide-gray-50">
                 {recentRequests.map((req) => (
                   <tr
-                    key={req.id}
+                    key={req._id}
                     className="hover:bg-gray-50/30 transition-colors"
                   >
                     <td className="px-5 py-4 font-medium text-gray-900">
@@ -308,52 +339,52 @@ export default function DonorDashboard() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/dashboard/requests/${req.id}`}
+                          href={`/dashboard/requests/${req._id}`}
                           className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                          title="View Details"
+                          title="View"
                         >
                           <Eye size={16} />
                         </Link>
                         <Link
-                          href={`/dashboard/requests/${req.id}/edit`}
+                          href={`/dashboard/requests/${req._id}/edit`}
                           className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
-                          title="Edit Request"
+                          title="Edit"
                         >
                           <Pencil size={16} />
                         </Link>
                         <button
                           onClick={() =>
-                            setDeleteModal({ open: true, id: req.id })
+                            setDeleteModal({ open: true, id: req._id })
                           }
                           className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Delete Request"
+                          title="Delete"
                         >
                           <Trash2 size={16} />
                         </button>
                         {req.status === 'inprogress' && (
                           <>
                             <button
-                              onClick={() => handleStatusChange(req.id, 'done')}
+                              onClick={() => handleStatusChange(req._id, 'done')}
                               className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
-                              title="Mark as Done"
+                              title="Mark Done"
                             >
                               <CheckCircle size={16} />
                             </button>
                             <button
                               onClick={() =>
-                                handleStatusChange(req.id, 'canceled')
+                                handleStatusChange(req._id, 'canceled')
                               }
                               className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                              title="Cancel Request"
+                              title="Cancel"
                             >
                               <XCircle size={16} />
                             </button>
                           </>
                         )}
                       </div>
-                      {req.status === 'inprogress' && req.donorInfo && (
+                      {req.status === 'inprogress' && req.donorName && (
                         <div className="mt-2 text-xs text-gray-500">
-                          Donor: {req.donorInfo.name} ({req.donorInfo.email})
+                          Donor: {req.donorName} ({req.donorEmail})
                         </div>
                       )}
                     </td>
@@ -367,82 +398,17 @@ export default function DonorDashboard() {
           <div className="md:hidden space-y-4">
             {recentRequests.map((req) => (
               <div
-                key={req.id}
+               key={req._id}
                 className="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-100 p-4 shadow-sm"
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-gray-900">
-                      {req.recipientName}
-                    </h3>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                      <MapPin size={12} /> {req.district}, {req.upazila}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                      <span className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
-                        <Calendar size={12} />{' '}
-                        {new Date(req.donationDate).toLocaleDateString('en-BD')}
-                      </span>
-                      <span className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full">
-                        <Clock size={12} /> {req.donationTime}
-                      </span>
-                      <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold text-xs">
-                        {req.bloodGroup}
-                      </span>
-                    </div>
-                    <div className="mt-3">
-                      <StatusBadge status={req.status} />
-                    </div>
-                    {req.status === 'inprogress' && req.donorInfo && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        Donor: {req.donorInfo.name} ({req.donorInfo.email})
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Link
-                      href={`/dashboard/requests/${req.id}`}
-                      className="text-blue-600"
-                    >
-                      <Eye size={18} />
-                    </Link>
-                    <Link
-                      href={`/dashboard/requests/${req.id}/edit`}
-                      className="text-emerald-600"
-                    >
-                      <Pencil size={18} />
-                    </Link>
-                    <button
-                      onClick={() => setDeleteModal({ open: true, id: req.id })}
-                      className="text-red-600"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                    {req.status === 'inprogress' && (
-                      <>
-                        <button
-                          onClick={() => handleStatusChange(req.id, 'done')}
-                          className="text-green-600"
-                        >
-                          <CheckCircle size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(req.id, 'canceled')}
-                          className="text-red-600"
-                        >
-                          <XCircle size={18} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ========== DELETE CONFIRMATION MODAL ========== */}
+      {/* Delete Confirmation Modal */}
       {deleteModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
@@ -472,9 +438,8 @@ export default function DonorDashboard() {
         </div>
       )}
 
-      {/* ========== USER SUMMARY & QUICK ACTION (SIDE BY SIDE) ========== */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* User Summary Card */}
+      {/* USER SUMMARY & QUICK ACTION (side by side) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-gray-100 shadow-lg p-6 space-y-5">
           <div className="flex items-center gap-4">
             <img
@@ -515,7 +480,7 @@ export default function DonorDashboard() {
           </div>
         </div>
 
-        {/* Quick Action Card */}
+        
         <div className="relative overflow-hidden rounded-2xl bg-[#0f172a] text-white p-6 shadow-xl shadow-indigo-900/20">
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl" />
           <div className="relative space-y-4">
@@ -524,10 +489,13 @@ export default function DonorDashboard() {
               Create a new blood request post. Our platform matches and alerts
               donors in your area instantly.
             </p>
-            <button className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-600/30">
+            <Link
+              href="/dashboard/create-request"
+              className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-600/30"
+            >
               <Plus size={16} />
               Create Request Post
-            </button>
+            </Link>
           </div>
         </div>
       </div>

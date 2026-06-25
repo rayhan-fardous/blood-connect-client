@@ -138,7 +138,7 @@ export default function HeroSection() {
                 }}
               >
                 <Link
-                  href="/search"
+                  href="/search-blood-request"
                   className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white/80 px-8 py-4 font-semibold text-gray-700 backdrop-blur-md transition-all hover:bg-white"
                 >
                   <Search size={18} />

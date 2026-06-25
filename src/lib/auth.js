@@ -38,12 +38,6 @@ export const auth = betterAuth({
           const result = await db
             .collection("user")
             .updateOne({ email: ctx.user.email }, { $set: updateFields });
-          console.log(
-            "Update matched:",
-            result.matchedCount,
-            "modified:",
-            result.modifiedCount,
-          );
         }
       }
     },

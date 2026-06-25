@@ -45,7 +45,7 @@ export default function ProfilePage() {
     if (!user?.email) return;
 
     if (!user.bloodGroup || !user.district || !user.upazila) {
-      fetch(`http://localhost:5000/api/profile?email=${user.email}`)
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/profile?email=${user.email}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
@@ -140,7 +140,7 @@ export default function ProfilePage() {
     setSaving(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

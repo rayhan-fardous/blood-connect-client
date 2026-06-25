@@ -22,8 +22,6 @@ const Navbar = () => {
   const isLoggedIn = !!session?.user;
   const user = session?.user;
 
-  console.log(user);
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
 
@@ -99,10 +97,10 @@ const Navbar = () => {
             <div className="relative overflow-hidden rounded-full p-1 bg-white shadow-sm border border-gray-100 group-hover:border-red-500/50 transition-colors">
               <Image
                 src={Logo}
-                height={32}
                 width={32}
-                alt="BloodBridge Logo"
-                className="object-cover"
+                height={32}
+                alt="BloodConnect Logo"
+                className="w-8 h-auto object-cover"
               />
             </div>
 
@@ -155,10 +153,7 @@ const Navbar = () => {
                     className="flex items-center gap-2 rounded-full border border-white/20 hover:border-red-500/50 transition-all"
                   >
                     <img
-                      src={
-                        user?.image ||
-                        "/default-avatar.png"
-                      }
+                      src={user?.image || "/default-avatar.png"}
                       width={32}
                       height={32}
                       className="rounded-full object-cover w-8 h-8"

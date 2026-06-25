@@ -63,19 +63,19 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const fundingRes = await fetch('http://localhost:5000/api/funding');
+      const fundingRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/funding`);
       const fundings = await fundingRes.json();
       const totalFunding = fundings.reduce((sum, f) => sum + f.amount, 0);
       setTotalFunding(totalFunding);
 
-      const usersRes = await fetch('http://localhost:5000/api/users');
+      const usersRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users`);
       const users = await usersRes.json();
       const donorCount = users.filter(
         (u) => (u.roll || 'Donor').toLowerCase() === 'donor'
       ).length;
       setTotalDonors(donorCount);
 
-      const requestsRes = await fetch('http://localhost:5000/api/donation-requests');
+      const requestsRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests`);
       const requests = await requestsRes.json();
       setBloodRequests(requests.length);
     } catch (err) {

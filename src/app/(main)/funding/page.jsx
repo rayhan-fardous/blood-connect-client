@@ -20,7 +20,7 @@ export default function FundingPage() {
 
   // Fetch real funding data from backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/funding')
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/funding`)
       .then((res) => {
         if (!res.ok) throw new Error('Could not load the donation history.');
         return res.json();
@@ -42,27 +42,40 @@ export default function FundingPage() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleGiveFund = () => {
+  const handleGiveFund = async () => {
+    if (!session?.user) {
+      toast.error('Please log in');
+      return;
+    }
     if (!fundAmount || isNaN(fundAmount) || Number(fundAmount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
     setPaymentLoading(true);
     
-    // Simulate real payment delay
-    setTimeout(() => {
-      const newFunding = {
-        _id: `temp${Date.now()}`,
-        donorName: session?.user?.name || 'Kind Donor',
-        amount: Number(fundAmount),
-        date: new Date().toISOString().split('T')[0],
-      };
-      setFundings([newFunding, ...fundings]);
-      toast.success('Thank you so much for your support!');
-      setShowModal(false);
-      setFundAmount('');
+    try {
+      const res = await fetch('/api/checkout-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Number(fundAmount),
+          donorName: session.user.name,
+          donorEmail: session.user.email,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        // Redirect to Stripe's hosted checkout page
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || 'Failed to create payment session');
+        setPaymentLoading(false);
+      }
+    } catch (err) {
+      toast.error('Network error');
       setPaymentLoading(false);
-    }, 1500);
+    }
   };
 
   // Loading / error states

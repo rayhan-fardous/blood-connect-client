@@ -44,7 +44,7 @@ export default function RequestDetailsPage({ params }) {
   // Fetch request details
   useEffect(() => {
     if (!session) return;
-    fetch(`http://localhost:5000/api/donation-requests/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('We could not find this request.');
         return res.json();
@@ -65,7 +65,7 @@ export default function RequestDetailsPage({ params }) {
     setConfirming(true);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/donation-requests/${id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },

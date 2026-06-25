@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from '@/lib/auth-client';
 import Link from 'next/link';
 import {
   Eye,
@@ -22,6 +23,11 @@ import toast from 'react-hot-toast';
 const ITEMS_PER_PAGE = 5;
 
 export default function AllDonationRequests() {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const role = (user?.roll || 'donor').toLowerCase();
+  const isAdmin = role === 'admin';
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,7 +38,7 @@ export default function AllDonationRequests() {
 
   const fetchRequests = () => {
     setLoading(true);
-    fetch('http://localhost:5000/api/donation-requests?')
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch requests');
         return res.json();
@@ -71,7 +77,7 @@ export default function AllDonationRequests() {
   const handleStatusChange = async (id, newStatus) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/donation-requests/${id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -86,6 +92,7 @@ export default function AllDonationRequests() {
           )
         );
         toast.success(`Request marked as ${newStatus}`);
+        window.dispatchEvent(new Event('statsUpdated'));
       } else {
         toast.error(data.message || 'Update failed');
       }
@@ -99,7 +106,7 @@ export default function AllDonationRequests() {
     if (!id) return;
     try {
       const res = await fetch(
-        `http://localhost:5000/api/donation-requests/${id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests/${id}`,
         {
           method: 'DELETE',
         }
@@ -108,6 +115,7 @@ export default function AllDonationRequests() {
       if (data.success) {
         setRequests((prev) => prev.filter((req) => req._id !== id));
         toast.success('Request deleted');
+        window.dispatchEvent(new Event('statsUpdated'));
       } else {
         toast.error(data.message || 'Deletion failed');
       }
@@ -256,21 +264,30 @@ export default function AllDonationRequests() {
                         >
                           <Eye size={16} />
                         </Link>
-                        <Link
-                          href={`/dashboard/requests/${req._id}/edit`}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-                          title="Edit Request"
-                        >
-                          <Pencil size={16} />
-                        </Link>
-                        <button
-                          onClick={() => setDeleteModal({ open: true, id: req._id })}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                          title="Delete Request"
-                        >
-                          <Trash2 size={16} />
-                        </button>
                         
+                        
+                      {isAdmin && (
+                        <>
+                          <Link
+                            href={`/dashboard/requests/${req._id}/edit`}
+                            className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                            title="Edit Request"
+                          >
+                            <Pencil size={16} />
+                          </Link>
+                          <button
+                            onClick={() =>
+                              setDeleteModal({ open: true, id: req._id })
+                            }
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Delete Request"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+
+                      
                         {req.status === 'inprogress' && (
                           <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 ml-1">
                             <button
@@ -340,12 +357,27 @@ export default function AllDonationRequests() {
                     <Link href={`/dashboard/requests/${req._id}`} className="p-1 text-slate-400 hover:text-slate-700">
                       <Eye size={16} />
                     </Link>
-                    <Link href={`/dashboard/requests/${req._id}/edit`} className="p-1 text-slate-400 hover:text-slate-700">
-                      <Pencil size={16} />
-                    </Link>
-                    <button onClick={() => setDeleteModal({ open: true, id: req._id })} className="p-1 text-slate-400 hover:text-red-600">
-                      <Trash2 size={16} />
-                    </button>
+                    
+
+                    {isAdmin && (
+                    <>
+                      <Link
+                        href={`/dashboard/requests/${req._id}/edit`}
+                        className="text-emerald-600"
+                      >
+                        <Pencil size={18} />
+                      </Link>
+                      <button
+                        onClick={() =>
+                          setDeleteModal({ open: true, id: req._id })
+                        }
+                        className="text-red-600"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  )}
+                  
                     {req.status === 'inprogress' && (
                       <>
                         <button onClick={() => handleStatusChange(req._id, 'done')} className="p-1 text-emerald-600">

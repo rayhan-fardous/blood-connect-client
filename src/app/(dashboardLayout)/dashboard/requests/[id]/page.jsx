@@ -28,7 +28,7 @@ export default function RequestDetailPage({ params }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/donation-requests/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Request not found");
         return res.json();

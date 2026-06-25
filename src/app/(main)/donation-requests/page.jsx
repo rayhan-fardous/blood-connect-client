@@ -11,7 +11,7 @@ export default function PublicRequestsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/donation-requests?status=pending')
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests?status=pending`)
       .then((res) => {
         if (!res.ok) throw new Error('Could not get data');
         return res.json();

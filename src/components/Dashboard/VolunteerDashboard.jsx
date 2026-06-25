@@ -1,6 +1,7 @@
 // components/dashboards/VolunteerDashboard.jsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import {
   Users,
@@ -9,12 +10,13 @@ import {
   Activity,
   ArrowRight,
   Sparkles,
-  Clock,
+  HandCoins,
   MapPin,
   BarChart3,
   Phone,
   CalendarDays,
   ClipboardList,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -27,111 +29,129 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// Dummy data (replace with API later)
-const stats = [
-  {
-    title: 'Open Requests',
-    value: 320,
-    icon: Droplet,
-    gradient: 'from-red-500 to-rose-600',
-    shadow: 'shadow-red-500/30',
-  },
-  {
-    title: 'In Progress',
-    value: 215,
-    icon: Activity,
-    gradient: 'from-blue-500 to-indigo-600',
-    shadow: 'shadow-blue-500/30',
-  },
-  {
-    title: 'Fulfilled Today',
-    value: 48,
-    icon: CheckCircle,
-    gradient: 'from-emerald-500 to-teal-600',
-    shadow: 'shadow-emerald-500/30',
-  },
-  {
-    title: 'Registered Donors',
-    value: 1256,
-    icon: Users,
-    gradient: 'from-purple-500 to-violet-600',
-    shadow: 'shadow-purple-500/30',
-  },
-];
-
-const weeklyData = [
-  { day: 'Sat', requests: 22 },
-  { day: 'Sun', requests: 18 },
-  { day: 'Mon', requests: 30 },
-  { day: 'Tue', requests: 25 },
-  { day: 'Wed', requests: 35 },
-  { day: 'Thu', requests: 28 },
-  { day: 'Fri', requests: 40 },
-];
-
-const recentDonors = [
-  {
-    id: 1,
-    name: 'Karim Uddin',
-    bloodGroup: 'O+',
-    location: 'Dhaka',
-    date: '2026-03-20',
-  },
-  {
-    id: 2,
-    name: 'Ayesha Siddiqua',
-    bloodGroup: 'A-',
-    location: 'Chittagong',
-    date: '2026-03-19',
-  },
-  {
-    id: 3,
-    name: 'Rafiq Hasan',
-    bloodGroup: 'B+',
-    location: 'Rajshahi',
-    date: '2026-03-19',
-  },
-  {
-    id: 4,
-    name: 'Sadia Rahman',
-    bloodGroup: 'AB+',
-    location: 'Sylhet',
-    date: '2026-03-18',
-  },
-];
-
-const upcomingCamps = [
-  {
-    id: 1,
-    location: 'Dhaka Medical College',
-    date: '2026-03-25',
-    time: '9 AM - 4 PM',
-  },
-  {
-    id: 2,
-    location: 'Chittagong General Hospital',
-    date: '2026-03-28',
-    time: '10 AM - 3 PM',
-  },
-];
-
 const VolunteerDashboard = () => {
   const { data: session, isPending } = useSession();
   const user = session?.user;
 
-  if (isPending) {
+// Dynamic stats (same as admin)
+  const [totalDonors, setTotalDonors] = useState(0);
+  const [totalFunding, setTotalFunding] = useState(0);
+  const [bloodRequests, setBloodRequests] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+
+  const [recentDonors, setRecentDonors] = useState([]);
+
+   // Weekly chart (static)
+  const weeklyData = [
+    { day: 'Sat', requests: 22 },
+    { day: 'Sun', requests: 18 },
+    { day: 'Mon', requests: 30 },
+    { day: 'Tue', requests: 25 },
+    { day: 'Wed', requests: 35 },
+    { day: 'Thu', requests: 28 },
+    { day: 'Fri', requests: 40 },
+  ];
+
+// Upcoming camps (static)
+  const upcomingCamps = [
+    {
+      id: 1,
+      location: 'Dhaka Medical College',
+      date: '2026-03-25',
+      time: '9 AM - 4 PM',
+    },
+    {
+      id: 2,
+      location: 'Chittagong General Hospital',
+      date: '2026-03-28',
+      time: '10 AM - 3 PM',
+    },
+  ];
+
+  
+  const fetchData = async () => {
+    try {
+   
+      const fundingRes = await fetch('http://localhost:5000/api/funding');
+      const fundings = await fundingRes.json();
+      const totalFunding = fundings.reduce((sum, f) => sum + f.amount, 0);
+      setTotalFunding(totalFunding);
+
+      
+      const usersRes = await fetch('http://localhost:5000/api/users');
+      const users = await usersRes.json();
+
+      // Count donors
+      const donorCount = users.filter(
+        (u) => (u.roll || 'Donor').toLowerCase() === 'donor'
+      ).length;
+      setTotalDonors(donorCount);
+
+      
+      const donorsOnly = users
+        .filter((u) => (u.roll || 'Donor').toLowerCase() === 'donor')
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 4)
+        .map((u) => ({
+          id: u.id || u._id,
+          name: u.name,
+          bloodGroup: u.bloodGroup || 'N/A',
+          location: u.district ? `${u.upazila || ''}, ${u.district}` : 'N/A',
+          date: u.createdAt, // registration date as recent activity indicator
+          image: u.image || '/default-avatar.png',
+        }));
+      setRecentDonors(donorsOnly);
+
+      // Fetch blood requests count
+      const requestsRes = await fetch(
+        'http://localhost:5000/api/donation-requests'
+      );
+      const requests = await requestsRes.json();
+      setBloodRequests(requests.length);
+    } catch (err) {
+      console.error('Volunteer data fetch error:', err);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    const handleStatsUpdate = () => fetchData();
+    window.addEventListener('statsUpdated', handleStatsUpdate);
+    return () => window.removeEventListener('statsUpdated', handleStatsUpdate);
+  }, []);
+
+  const stats = [
+    {
+      title: 'Total Donors',
+      value: totalDonors.toLocaleString(),
+      icon: Users,
+      gradient: 'from-purple-500 to-violet-600',
+      shadow: 'shadow-purple-500/30',
+    },
+    {
+      title: 'Total Funding',
+      value: `৳ ${totalFunding.toLocaleString()}`,
+      icon: HandCoins,
+      gradient: 'from-green-500 to-teal-600',
+      shadow: 'shadow-green-500/30',
+    },
+    {
+      title: 'Blood Requests',
+      value: bloodRequests.toLocaleString(),
+      icon: Droplet,
+      gradient: 'from-red-500 to-rose-600',
+      shadow: 'shadow-red-500/30',
+    },
+  ];
+
+  if (isPending || loadingStats) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 border-4 border-red-200 border-t-red-600 rounded-full animate-spin" />
-            <Droplet
-              size={24}
-              className="absolute inset-0 m-auto text-red-600 animate-pulse"
-            />
-          </div>
-          <p className="text-gray-500 font-medium">Loading your dashboard...</p>
-        </div>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
       </div>
     );
   }
@@ -160,7 +180,7 @@ const VolunteerDashboard = () => {
             </p>
           </div>
           <Link
-            href="/dashboard/all-requests"
+            href="/dashboard/allDonationRequests"
             className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-2xl font-semibold hover:bg-white hover:text-gray-900 transition-all duration-300 group"
           >
             <Droplet size={18} />
@@ -174,7 +194,7 @@ const VolunteerDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, idx) => (
           <div
             key={idx}
@@ -200,9 +220,7 @@ const VolunteerDashboard = () => {
         ))}
       </div>
 
-      {/* Chart & Recent Donors */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Weekly Requests Chart */}
         <div className="lg:col-span-2 bg-white/40 backdrop-blur-md border border-white/60 shadow-lg shadow-gray-100/50 rounded-2xl p-6">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-6">
             <BarChart3 className="text-red-500" size={22} />
@@ -267,29 +285,36 @@ const VolunteerDashboard = () => {
             Recent Donors
           </h3>
           <div className="space-y-3">
-            {recentDonors.map((donor) => (
-              <div
-                key={donor.id}
-                className="flex items-center justify-between bg-white/60 p-3 rounded-xl"
-              >
-                <div>
-                  <p className="font-medium text-gray-800 text-sm">
-                    {donor.name}
-                  </p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                    <MapPin size={10} /> {donor.location}
-                  </p>
+            {recentDonors.length > 0 ? (
+              recentDonors.map((donor) => (
+                <div
+                  key={donor.id}
+                  className="flex items-center justify-between bg-white/60 p-3 rounded-xl"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800 text-sm">
+                      {donor.name}
+                    </p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                      <MapPin size={10} /> {donor.location}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-block px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-bold">
+                      {donor.bloodGroup}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(donor.date).toLocaleDateString('en-BD')}
+                    </p>
+                  </div>
+                
                 </div>
-                <div className="text-right">
-                  <span className="inline-block px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-bold">
-                    {donor.bloodGroup}
-                  </span>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(donor.date).toLocaleDateString('en-BD')}
-                  </p>
-                </div>
-              </div>
-            ))}
+               ))
+            ) : (
+              <p className="text-center text-gray-500 text-sm">
+                No donors registered yet.
+              </p>
+            )}
           </div>
           <Link
             href="/dashboard/donors"
@@ -302,7 +327,6 @@ const VolunteerDashboard = () => {
 
       {/* Upcoming Camps & Quick Tasks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Upcoming Blood Camps */}
         <div className="bg-white/40 backdrop-blur-md border border-white/60 shadow-lg shadow-gray-100/50 rounded-2xl p-6">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
             <CalendarDays className="text-red-500" size={22} />
@@ -331,7 +355,6 @@ const VolunteerDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Tasks */}
         <div className="bg-white/40 backdrop-blur-md border border-white/60 shadow-lg shadow-gray-100/50 rounded-2xl p-6">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
             <ClipboardList className="text-red-500" size={22} />

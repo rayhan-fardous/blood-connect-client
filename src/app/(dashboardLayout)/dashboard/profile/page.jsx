@@ -25,7 +25,6 @@ export default function ProfilePage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const user = session?.user;
 
-  // Start with session data (may be incomplete)
   const [profile, setProfile] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -42,11 +41,9 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [filteredUpazilas, setFilteredUpazilas] = useState([]);
 
-  
   useEffect(() => {
     if (!user?.email) return;
 
-    
     if (!user.bloodGroup || !user.district || !user.upazila) {
       fetch(`http://localhost:5000/api/profile?email=${user.email}`)
         .then((res) => res.json())
@@ -70,7 +67,6 @@ export default function ProfilePage() {
               upazila: p.upazila || '',
             });
           } else {
-            // Even if the API fails, we keep the session data
             setOriginalProfile({ ...profile });
           }
           setFetchingProfile(false);
@@ -80,7 +76,6 @@ export default function ProfilePage() {
           setFetchingProfile(false);
         });
     } else {
-     
       setOriginalProfile({
         name: user.name || '',
         email: user.email || '',
@@ -101,7 +96,6 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // Update upazila list when district changes (in edit mode)
   useEffect(() => {
     if (editing && profile.district) {
       const selected = districtsInfo.find((d) => d.name === profile.district);
@@ -157,7 +151,6 @@ export default function ProfilePage() {
           upazila: profile.upazila,
           avatarUrl: profile.avatarUrl,
         }),
-        
       });
       const data = await res.json();
       if (data.success) {
@@ -186,39 +179,48 @@ export default function ProfilePage() {
 
   if (sessionLoading || fetchingProfile) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-        <User className="text-red-500" size={24} />
-        My Profile
-      </h1>
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+          <User className="text-red-500" size={20} />
+          Profile Settings
+        </h1>
+        
+        {!editing && (
+          <button
+            onClick={handleEditToggle}
+            className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl shadow-xs transition-colors"
+          >
+            <Pencil size={14} className="text-slate-400" />
+            Edit Profile
+          </button>
+        )}
+      </div>
 
-      {/* Profile Card */}
-      <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-gray-200/60 overflow-hidden">
-        {/* subtle gradient line on top */}
-        <div className="h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600" />
-
-        <div className="p-8 md:p-10 space-y-8">
-          {/* Avatar Section */}
-          <div className="flex flex-col items-center">
+      <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
+        <div className="p-6 md:p-8 space-y-8">
+          
+          {/* Avatar Area */}
+          <div className="flex flex-col items-center border-b border-slate-100 pb-8">
             <div
-              className="relative group cursor-pointer"
+              className={`relative group rounded-full ${editing ? 'cursor-pointer ring-4 ring-offset-2 ring-red-500/10' : ''}`}
               onClick={() => editing && fileInputRef.current?.click()}
             >
               <img
                 src={profile.avatarUrl || '/default-avatar.png'}
                 alt="Avatar"
-                className="w-28 h-28 rounded-full object-cover border-4 border-red-100 shadow-md"
+                className="w-24 h-24 rounded-full object-cover border border-slate-200 bg-slate-50 shadow-xs"
               />
               {editing && (
-                <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="text-white" size={24} />
+                <div className="absolute inset-0 bg-slate-900/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Camera className="text-white" size={20} />
                 </div>
               )}
             </div>
@@ -231,87 +233,72 @@ export default function ProfilePage() {
                   onChange={handleAvatarUpload}
                   className="hidden"
                 />
-                <p className="text-xs text-gray-500 mt-2">
-                  Click avatar to change
+                <p className="text-[11px] font-medium text-slate-400 mt-2.5">
+                  Click image to replace avatar
                 </p>
               </>
             )}
           </div>
 
-          {/* Form */}
-          <div className="space-y-6">
+          {/* Form Content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
             {/* Name */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
-                Name
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Full Name
               </label>
               <div className="relative">
-                <User
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   name="name"
                   value={profile.name}
                   onChange={handleChange}
                   disabled={!editing}
-                  className={`w-full pl-12 pr-4 py-3.5 border rounded-xl transition ${
+                  className={`w-full pl-10 pr-4 py-2.5 text-sm border rounded-xl transition-all ${
                     editing
-                      ? 'bg-white border-gray-300 text-gray-800 focus:ring-2 focus:ring-red-500'
-                      : 'bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed'
+                      ? 'bg-white border-slate-300 text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500'
+                      : 'bg-slate-50 border-slate-200/70 text-slate-500 cursor-not-allowed'
                   }`}
                 />
               </div>
             </div>
 
-            {/* Email – always disabled */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
-                Email
+            {/* Email */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Email Address
               </label>
               <div className="relative">
-                <Mail
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="email"
                   name="email"
                   value={profile.email}
                   disabled
-                  className="w-full pl-12 pr-4 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200/70 rounded-xl text-slate-400 cursor-not-allowed"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1 ml-1">
-                Email cannot be changed.
-              </p>
             </div>
 
             {/* Blood Group */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
-                Blood Group
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Blood Type
               </label>
               <div className="relative">
-                <Droplet
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <Droplet size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 {editing ? (
                   <select
                     name="bloodGroup"
                     value={profile.bloodGroup}
                     onChange={handleChange}
-                    className="w-full appearance-none pl-12 pr-10 py-3.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+                    className="w-full appearance-none pl-10 pr-10 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer"
                   >
-                    <option value="" disabled>
-                      Select blood group
-                    </option>
+                    <option value="" disabled>Select blood group</option>
                     {bloodGroups.map((group) => (
-                      <option key={group} value={group}>
-                        {group}
-                      </option>
+                      <option key={group} value={group}>{group}</option>
                     ))}
                   </select>
                 ) : (
@@ -319,42 +306,35 @@ export default function ProfilePage() {
                     type="text"
                     value={profile.bloodGroup}
                     disabled
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200/70 rounded-xl text-slate-500 cursor-not-allowed"
                   />
                 )}
                 {editing && (
-                  <ChevronDown
-                    size={18}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
+                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 )}
               </div>
             </div>
 
+            {/* Empty space layout sync */}
+            <div className="hidden md:block" />
+
             {/* District */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 District
               </label>
               <div className="relative">
-                <MapPin
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 {editing ? (
                   <select
                     name="district"
                     value={profile.district}
                     onChange={handleChange}
-                    className="w-full appearance-none pl-12 pr-10 py-3.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+                    className="w-full appearance-none pl-10 pr-10 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer"
                   >
-                    <option value="" disabled>
-                      Select district
-                    </option>
+                    <option value="" disabled>Select district</option>
                     {districtsInfo.map((d) => (
-                      <option key={d.id} value={d.name}>
-                        {d.name}
-                      </option>
+                      <option key={d.id} value={d.name}>{d.name}</option>
                     ))}
                   </select>
                 ) : (
@@ -362,43 +342,33 @@ export default function ProfilePage() {
                     type="text"
                     value={profile.district}
                     disabled
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200/70 rounded-xl text-slate-500 cursor-not-allowed"
                   />
                 )}
                 {editing && (
-                  <ChevronDown
-                    size={18}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
+                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 )}
               </div>
             </div>
 
             {/* Upazila */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Upazila
               </label>
               <div className="relative">
-                <MapPin
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 {editing ? (
                   <select
                     name="upazila"
                     value={profile.upazila}
                     onChange={handleChange}
                     disabled={!profile.district}
-                    className="w-full appearance-none pl-12 pr-10 py-3.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer disabled:opacity-50"
+                    className="w-full appearance-none pl-10 pr-10 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer disabled:opacity-50"
                   >
-                    <option value="" disabled>
-                      Select upazila
-                    </option>
+                    <option value="" disabled>Select upazila</option>
                     {filteredUpazilas.map((u) => (
-                      <option key={u.id} value={u.name}>
-                        {u.name}
-                      </option>
+                      <option key={u.id} value={u.name}>{u.name}</option>
                     ))}
                   </select>
                 ) : (
@@ -406,58 +376,45 @@ export default function ProfilePage() {
                     type="text"
                     value={profile.upazila}
                     disabled
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200/70 rounded-xl text-slate-500 cursor-not-allowed"
                   />
                 )}
                 {editing && (
-                  <ChevronDown
-                    size={18}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
+                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 )}
               </div>
             </div>
-
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
-                {error}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4">
-              {!editing ? (
-                <button
-                  onClick={handleEditToggle}
-                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-red-500/20 transition"
-                >
-                  <Pencil size={18} />
-                  Edit
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleEditToggle}
-                    className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-red-500/20 transition disabled:opacity-70"
-                  >
-                    {saving ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Save size={18} />
-                    )}
-                    Save
-                  </button>
-                </>
-              )}
-            </div>
           </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-medium text-center">
+              {error}
+            </div>
+          )}
+
+          {/* Action Footer */}
+          {editing && (
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                onClick={handleEditToggle}
+                className="px-4 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors disabled:opacity-70"
+              >
+                {saving ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Save size={14} />
+                )}
+                Save Changes
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

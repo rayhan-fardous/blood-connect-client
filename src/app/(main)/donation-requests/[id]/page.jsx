@@ -12,8 +12,6 @@ import {
   Loader2,
   ArrowLeft,
   User,
-  Mail,
-  Phone,
   MessageSquare,
   AlertCircle,
   Building,
@@ -48,7 +46,7 @@ export default function RequestDetailsPage({ params }) {
     if (!session) return;
     fetch(`http://localhost:5000/api/donation-requests/${id}`)
       .then((res) => {
-        if (!res.ok) throw new Error('Request not found');
+        if (!res.ok) throw new Error('We could not find this request.');
         return res.json();
       })
       .then((data) => {
@@ -81,17 +79,15 @@ export default function RequestDetailsPage({ params }) {
       const data = await res.json();
       if (data.success) {
         toast.success(
-          'Thank you! You have joined this request. Status is now In Progress.'
+          'Thank you! You have signed up to help. The request is now in progress.'
         );
         setShowModal(false);
-        // Optionally refresh the request details or redirect
-        // Refetch to see updated status
         setRequest((prev) => ({ ...prev, status: 'inprogress' }));
       } else {
-        toast.error(data.message || 'Failed to confirm donation');
+        toast.error(data.message || 'Could not save your donation.');
       }
     } catch (err) {
-      toast.error('Something went wrong');
+      toast.error('Something went wrong. Please check your internet connection.');
     } finally {
       setConfirming(false);
     }
@@ -100,16 +96,13 @@ export default function RequestDetailsPage({ params }) {
   // Loading & Error States
   if (sessionLoading || loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#0b0f1c]">
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 border-4 border-red-200 border-t-red-600 rounded-full animate-spin" />
-            <Droplet
-              size={24}
-              className="absolute inset-0 m-auto text-red-600 animate-pulse"
-            />
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <div className="absolute inset-0 border-4 border-red-100 border-t-red-500 rounded-full animate-spin" />
+            <Droplet size={24} className="text-red-500 animate-pulse" />
           </div>
-          <p className="text-gray-400">Loading request details...</p>
+          <p className="text-sm font-medium text-slate-500">Loading details...</p>
         </div>
       </div>
     );
@@ -117,13 +110,13 @@ export default function RequestDetailsPage({ params }) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0b0f1c] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <AlertCircle size={48} className="text-red-400 mx-auto" />
-          <p className="text-red-400 text-lg">{error}</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="text-center space-y-4 max-w-sm bg-white p-8 rounded-2xl border border-slate-100 shadow-xs">
+          <AlertCircle size={40} className="text-red-500 mx-auto" />
+          <p className="text-slate-800 font-semibold">{error}</p>
           <Link
             href="/donation-requests"
-            className="text-red-500 hover:text-red-400 underline"
+            className="inline-block bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm px-4 py-2 rounded-xl transition"
           >
             Go back
           </Link>
@@ -132,74 +125,66 @@ export default function RequestDetailsPage({ params }) {
     );
   }
 
-  if (!request) {
-    return (
-      <div className="min-h-screen bg-[#0b0f1c] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Droplet size={48} className="text-gray-600 mx-auto" />
-          <p className="text-gray-400 text-lg">Request not found</p>
-          <Link
-            href="/donation-requests"
-            className="text-red-500 hover:text-red-400 underline"
-          >
-            Browse other requests
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#0b0f1c] py-12 px-4 pt-32">
-      <div className="max-w-4xl mx-auto">
-        {/* Back link */}
+    <div className="min-h-screen bg-slate-50 text-slate-800 py-12 px-4 pt-28 md:pt-36 relative">
+      {/* Soft Decorative Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-1/3 w-96 h-96 bg-red-100/30 rounded-full blur-3xl" />
+      </div>
+
+      <div className="max-w-3xl mx-auto relative z-10">
+        {/* Friendly Back Button */}
         <Link
           href="/donation-requests"
-          className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 mb-8 font-medium transition-colors group"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-6 font-medium text-sm transition group"
         >
           <ArrowLeft
-            size={20}
+            size={16}
             className="group-hover:-translate-x-1 transition-transform"
           />
-          Back to requests
+          Back to all requests
         </Link>
 
-        {/* Main card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-red-900/10 space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        {/* Main Details Card */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-10 shadow-xs space-y-8">
+          
+          {/* Card Header: Recipient Name & Blood Badge */}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-slate-100">
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-white">
+              <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">
                 {request.recipientName}
               </h1>
-              <p className="text-gray-400 mt-1">Blood Donation Request</p>
+              <p className="text-sm font-medium text-slate-500 mt-1">Needs a Blood Donor</p>
+              
               {request.requesterName && (
-                <div className="flex items-center gap-2 mt-3 text-gray-300">
-                  <User size={16} className="text-red-400" />
-                  <span className="text-sm">
-                    Requested by {request.requesterName}
-                  </span>
+                <div className="flex items-center gap-2 mt-3 text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 w-fit text-xs font-medium">
+                  <User size={14} className="text-slate-400" />
+                  <span>Posted by {request.requesterName}</span>
                 </div>
               )}
             </div>
-            <span className="inline-flex items-center gap-2 px-5 py-2 bg-red-600/20 text-red-300 rounded-full text-lg font-bold border border-red-500/30">
-              <Droplet size={20} />
+            
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 rounded-2xl text-xl font-black border border-red-100">
+              <Droplet size={18} className="fill-current" />
               {request.bloodGroup}
             </span>
           </div>
 
-          {/* Location & Timing */}
+          {/* Logistics Layout: Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-gray-300">
-                <MapPin size={20} className="text-red-400" />
-                <span className="text-base font-medium">
-                  {request.district}, {request.upazila}
-                </span>
+              <div className="flex items-center gap-3 text-slate-700 font-medium text-sm">
+                <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                  <MapPin size={16} />
+                </div>
+                <span>{request.district}, {request.upazila}</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-300">
-                <Calendar size={20} className="text-red-400" />
-                <span className="text-base font-medium">
+              
+              <div className="flex items-center gap-3 text-slate-700 font-medium text-sm">
+                <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                  <Calendar size={16} />
+                </div>
+                <span>
                   {new Date(request.donationDate).toLocaleDateString('en-BD', {
                     weekday: 'long',
                     day: 'numeric',
@@ -208,155 +193,173 @@ export default function RequestDetailsPage({ params }) {
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-gray-300">
-                <Clock size={20} className="text-red-400" />
-                <span className="text-base font-medium">
-                  {request.donationTime}
-                </span>
+              
+              <div className="flex items-center gap-3 text-slate-700 font-medium text-sm">
+                <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                  <Clock size={16} />
+                </div>
+                <span>Needed around {request.donationTime}</span>
               </div>
             </div>
 
             <div className="space-y-4">
-              {/* Status */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <p className="text-sm text-gray-400 mb-2">Request Status</p>
+              {/* Request Progress Status Tracker */}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100/80">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Status</p>
                 <span
-                  className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold border ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border ${
                     request.status === 'pending'
-                      ? 'bg-amber-600/20 text-amber-300 border-amber-500/30'
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
                       : request.status === 'inprogress'
-                        ? 'bg-blue-600/20 text-blue-300 border-blue-500/30'
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
                         : request.status === 'done'
-                          ? 'bg-green-600/20 text-green-300 border-green-500/30'
-                          : 'bg-gray-600/20 text-gray-300 border-gray-500/30'
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
                   }`}
                 >
-                  {request.status.charAt(0).toUpperCase() +
-                    request.status.slice(1)}
+                  {request.status === 'pending' && 'Waiting for Donor'}
+                  {request.status === 'inprogress' && 'Donor Found / On the Way'}
+                  {request.status === 'done' && 'Completed'}
+                  {!['pending', 'inprogress', 'done'].includes(request.status) && request.status}
                 </span>
               </div>
 
-              {/* Hospital */}
+              {/* Hospital Block */}
               {request.hospitalName && (
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <p className="text-sm text-gray-400 mb-1">Hospital</p>
-                  <div className="flex items-center gap-2 text-white">
-                    <Building size={16} className="text-red-400" />
-                    <p className="font-medium">{request.hospitalName}</p>
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100/80">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Hospital Location</p>
+                  <div className="flex items-center gap-2 text-slate-800 text-sm font-semibold">
+                    <Building size={14} className="text-slate-400" />
+                    <p>{request.hospitalName}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Extra details: address, message */}
+          {/* Simple Custom Details Blocks */}
           {(request.fullAddress || request.requestMessage) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               {request.fullAddress && (
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <p className="text-sm text-gray-400 mb-2">Full Address</p>
-                  <p className="text-white text-sm">{request.fullAddress}</p>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Exact Address</p>
+                  <p className="text-slate-700 text-sm font-medium leading-relaxed">{request.fullAddress}</p>
                 </div>
               )}
               {request.requestMessage && (
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare size={16} className="text-red-400" />
-                    <p className="text-sm font-medium text-gray-300">
-                      Request Message
-                    </p>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <MessageSquare size={14} className="text-slate-400" />
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Note from Family</p>
                   </div>
-                  <p className="text-gray-200 text-sm leading-relaxed">
-                    {request.requestMessage}
+                  <p className="text-slate-700 text-sm font-medium leading-relaxed italic">
+                    "{request.requestMessage}"
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Donor Info (if already in progress) */}
+          {/* Assigned Donor Summary Panel */}
           {request.status === 'inprogress' && request.donorName && (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <p className="text-sm text-gray-400 mb-2">Assigned Donor</p>
-              <div className="flex items-center gap-2 text-white">
-                <User size={16} className="text-red-400" />
-                <p className="font-medium">
-                  {request.donorName} ({request.donorEmail})
+            <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-5 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <Heart size={16} className="fill-current" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Donor Assigned</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  {request.donorName} is covering this request.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Donate Button – visible only if pending */}
+          {/* Interactive Core Action Button */}
           {request.status === 'pending' && (
             <button
               onClick={() => setShowModal(true)}
-              className="mt-8 w-full flex items-center justify-center gap-2 bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-red-600/25"
+              className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-2xl transition shadow-xs"
             >
-              <Heart size={20} />I Want to Donate
+              <Heart size={18} className="fill-current" />
+              <span>I Want to Donate</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Donate Confirmation Modal */}
+      {/* Confirmation Modal Overlay */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#1e1e2e] w-full max-w-md rounded-3xl border border-white/10 shadow-2xl shadow-red-900/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
-            <div className="relative p-6 md:p-8">
-              <div className="flex justify-between items-start mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  Confirm Donation
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-white transition"
-                >
-                  <X size={20} />
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden p-6 md:p-8">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                Confirm Your Donation
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-800 transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Explanatory Prompt */}
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              By confirming, you agree to contact the family and show up at the hospital. Your profile details below will be shared with them.
+            </p>
+
+            {/* Disabled Input Fields */}
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  value={session?.user?.name || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium text-sm cursor-not-allowed"
+                />
               </div>
-
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Donor Name
-                  </label>
-                  <input
-                    type="text"
-                    value={session?.user?.name || ''}
-                    disabled
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white opacity-70 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Donor Email
-                  </label>
-                  <input
-                    type="email"
-                    value={session?.user?.email || ''}
-                    disabled
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white opacity-70 cursor-not-allowed"
-                  />
-                </div>
-
-
-                <button
-                  onClick={handleConfirmDonation}
-                  disabled={confirming}
-                  className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-70"
-                >
-                  {confirming ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <>
-                      <Heart size={18} />
-                      Confirm Donation
-                    </>
-                  )}
-                </button>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Your Email
+                </label>
+                <input
+                  type="email"
+                  value={session?.user?.email || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium text-sm cursor-not-allowed"
+                />
               </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                disabled={confirming}
+                className="w-full order-2 sm:order-1 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold py-3 rounded-xl transition text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDonation}
+                disabled={confirming}
+                className="w-full order-1 sm:order-2 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition text-sm shadow-xs disabled:opacity-70"
+              >
+                {confirming ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <>
+                    <Heart size={16} className="fill-current" />
+                    <span>Confirm</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

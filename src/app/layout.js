@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
               borderRadius: '12px',
             },
             success: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
+              iconTheme: { primary: '#00a952', secondary: '#fff' },
             },
             error: {
               iconTheme: { primary: '#ef4444', secondary: '#fff' },

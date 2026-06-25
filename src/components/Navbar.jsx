@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, X, Bell, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Logo from "@/assets/logo.png";
 import { useSession } from "@/lib/auth-client";
@@ -148,19 +148,6 @@ const Navbar = () => {
               <>
                 <NavItem path="/funding" label="Funding" />
 
-                {/* Clean Notification Icon */}
-                <button
-                  className={`relative transition-colors ${textColor} hover:text-red-600`}
-                >
-                  <motion.div
-                    whileHover={{ rotate: [-10, 10, -10, 0] }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <Bell className="w-5 h-5" />
-                  </motion.div>
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
-                </button>
-
                 {/* Avatar Dropdown - no chevron */}
                 <div className="relative">
                   <button
@@ -170,7 +157,7 @@ const Navbar = () => {
                     <img
                       src={
                         user?.image ||
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ef4444' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z' /%3E%3C/svg%3E"
+                        "/default-avatar.png"
                       }
                       width={32}
                       height={32}

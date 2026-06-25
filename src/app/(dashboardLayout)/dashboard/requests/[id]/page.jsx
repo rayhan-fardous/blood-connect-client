@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Heart,
   Sparkles,
+  ExternalLink,
+  ClipboardText,
 } from "lucide-react";
 
 export default function RequestDetailPage({ params }) {
@@ -43,21 +45,25 @@ export default function RequestDetailPage({ params }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+      <div className="flex flex-col gap-3 justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-rose-600 animate-spin" />
+        <p className="text-sm font-medium text-gray-400 animate-pulse">Loading core details...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="text-center text-red-500">
-          <AlertCircle size={32} className="mx-auto mb-2" />
-          <p>{error}</p>
+      <div className="flex justify-center items-center min-h-[60vh] px-4">
+        <div className="text-center max-w-sm bg-white p-6 rounded-2xl border border-gray-100 shadow-xl">
+          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={24} />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900">An Error Occurred</h3>
+          <p className="text-gray-500 text-sm mt-1">{error}</p>
           <Link
             href="/dashboard/requests"
-            className="text-sm underline mt-2 block"
+            className="mt-5 inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm"
           >
             Back to My Requests
           </Link>
@@ -68,191 +74,154 @@ export default function RequestDetailPage({ params }) {
 
   if (!request) {
     return (
-      <div className="text-center py-12 text-gray-500">Request not found</div>
+      <div className="text-center py-16 text-gray-400 font-medium text-sm">Request context metadata not found</div>
     );
   }
 
+  // Define structured badge styles maps dynamically
+  const statusConfig = {
+    pending: "bg-amber-50 text-amber-700 border-amber-200/60 ring-amber-500/10",
+    inprogress: "bg-sky-50 text-sky-700 border-sky-200/60 ring-sky-500/10",
+    done: "bg-emerald-50 text-emerald-700 border-emerald-200/60 ring-emerald-500/10",
+    canceled: "bg-rose-50 text-rose-700 border-rose-200/60 ring-rose-500/10",
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Back link */}
-      <Link
-        href="/dashboard/requests"
-        className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 mb-8 font-medium transition-colors"
-      >
-        <ArrowLeft size={20} />
-        Back to My Requests
-      </Link>
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {/* Top action header navigation bar */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard/requests"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-rose-600 bg-white border border-gray-200/80 rounded-xl hover:border-gray-300 transition shadow-sm group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+          <span>Back to Requests</span>
+        </Link>
+        
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ring-1 ring-inset ${statusConfig[request.status] || "bg-gray-50 border-gray-200 text-gray-600"}`}>
+          <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-85" />
+          {request.status === "inprogress" ? "In Progress" : request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+        </span>
+      </div>
 
-      {/* Main card – consistent glass style */}
-      <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-gray-200/60 overflow-hidden">
-        {/* subtle top gradient line */}
-        <div className="h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600" />
-
-        <div className="p-8 md:p-10 space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+      {/* Primary Structural Layout Grid Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        {/* Left Column Section: Focus Card Details */}
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-gray-100">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-semibold tracking-wider border border-red-200 mb-3">
-                <Sparkles size={14} />
-                Request Details
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-[11px] font-bold uppercase tracking-wider mb-2">
+                <Sparkles size={12} />
+                Critical Requirement
               </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
                 {request.recipientName}
               </h1>
-              <p className="text-gray-500 mt-1">Blood Donation Request</p>
               {request.requesterName && (
-                <div className="flex items-center gap-2 mt-3 text-gray-600">
-                  <User size={16} className="text-red-500" />
-                  <span className="text-sm">
-                    Requested by {request.requesterName}
+                <div className="flex items-center gap-1.5 mt-2 text-xs font-medium text-gray-500">
+                  <User size={14} className="text-gray-400" />
+                  <span>Listed by <span className="text-gray-700 font-semibold">{request.requesterName}</span></span>
+                </div>
+              )}
+            </div>
+
+            {/* Blood type visual block representation */}
+            <div className="flex flex-row sm:flex-col items-center justify-center p-3 bg-rose-50/50 border border-rose-100 rounded-xl min-w-[76px] text-center shrink-0">
+              <Droplet size={20} className="text-rose-600 mb-0.5" />
+              <span className="text-xl font-black text-rose-700 tracking-tighter">{request.bloodGroup}</span>
+            </div>
+          </div>
+
+          {/* Core Schedule Matrix Metadata */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Logistic Specifications</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3 p-3.5 bg-gray-50/50 rounded-xl border border-gray-100">
+                <div className="p-2 bg-white border border-gray-200/60 text-rose-600 rounded-lg shadow-sm"><Calendar size={16} /></div>
+                <div>
+                  <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">Date Target</span>
+                  <span className="text-sm font-semibold text-gray-800">
+                    {new Date(request.donationDate).toLocaleDateString("en-BD", { dateStyle: "long" })}
                   </span>
                 </div>
-              )}
-            </div>
-            <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-100 text-red-700 rounded-full text-lg font-bold border border-red-200 shadow-sm">
-              <Droplet size={20} />
-              {request.bloodGroup}
-            </span>
-          </div>
+              </div>
 
-          {/* Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left */}
-            <div className="space-y-5">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mt-0.5">
-                  <MapPin size={18} className="text-red-500" />
-                </div>
+              <div className="flex items-start gap-3 p-3.5 bg-gray-50/50 rounded-xl border border-gray-100">
+                <div className="p-2 bg-white border border-gray-200/60 text-rose-600 rounded-lg shadow-sm"><Clock size={16} /></div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
-                    Location
-                  </p>
-                  <p className="text-gray-800 font-medium">
-                    {request.district}, {request.upazila}
-                  </p>
+                  <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">Schedule Time</span>
+                  <span className="text-sm font-semibold text-gray-800">{request.donationTime}</span>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mt-0.5">
-                  <Calendar size={18} className="text-red-500" />
-                </div>
+
+              <div className="flex items-start gap-3 p-3.5 bg-gray-50/50 rounded-xl border border-gray-100 sm:col-span-2">
+                <div className="p-2 bg-white border border-gray-200/60 text-rose-600 rounded-lg shadow-sm"><MapPin size={16} /></div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
-                    Date
-                  </p>
-                  <p className="text-gray-800 font-medium">
-                    {new Date(request.donationDate).toLocaleDateString(
-                      "en-BD",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      },
-                    )}
-                  </p>
+                  <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">Regional Area</span>
+                  <span className="text-sm font-semibold text-gray-800">{request.district}, {request.upazila}</span>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mt-0.5">
-                  <Clock size={18} className="text-red-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
-                    Time
-                  </p>
-                  <p className="text-gray-800 font-medium">
-                    {request.donationTime}
-                  </p>
-                </div>
-              </div>
-              {request.hospitalName && (
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mt-0.5">
-                    <Building2 size={18} className="text-red-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
-                      Hospital
-                    </p>
-                    <p className="text-gray-800 font-medium">
-                      {request.hospitalName}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right */}
-            <div className="space-y-5">
-              {/* Status */}
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">
-                  Status
-                </p>
-                <span
-                  className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold border ${
-                    request.status === "pending"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : request.status === "inprogress"
-                        ? "bg-blue-50 text-blue-700 border-blue-200"
-                        : request.status === "done"
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-red-50 text-red-700 border-red-200"
-                  }`}
-                >
-                  {request.status.charAt(0).toUpperCase() +
-                    request.status.slice(1)}
-                </span>
-              </div>
-
-              {/* Donor info if inprogress */}
-              {request.status === "inprogress" && request.donorName && (
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Heart size={16} className="text-blue-500" />
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
-                      Assigned Donor
-                    </p>
-                  </div>
-                  <p className="text-gray-800 font-medium">
-                    {request.donorName}
-                  </p>
-                  {request.donorEmail && (
-                    <p className="text-gray-600 text-sm mt-0.5">
-                      {request.donorEmail}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Full address */}
-              {request.fullAddress && (
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">
-                    Full Address
-                  </p>
-                  <p className="text-gray-700 text-sm">{request.fullAddress}</p>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Request message */}
+          {/* Extended descriptive context content */}
           {request.requestMessage && (
-            <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <MessageSquare size={18} className="text-red-500" />
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                  Request Message
-                </p>
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-1.5 mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <MessageSquare size={14} />
+                <span>Patient Condition Summary</span>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p className="text-sm text-gray-600 bg-slate-50 border border-slate-100 p-4 rounded-xl leading-relaxed">
                 {request.requestMessage}
               </p>
             </div>
           )}
         </div>
+
+        {/* Right Column Sidebars: Structural Secondary Data Widgets */}
+        <div className="space-y-6">
+          {/* Institution Medical Location Panel */}
+          {request.hospitalName && (
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><Building2 size={16} /></div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Medical Facility</h4>
+              </div>
+              <p className="text-sm font-bold text-gray-900 leading-tight">{request.hospitalName}</p>
+              {request.fullAddress && (
+                <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-50 leading-relaxed">
+                  {request.fullAddress}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Assigned Donor workflow micro-card block */}
+          {request.status === "inprogress" && request.donorName ? (
+            <div className="bg-slate-900 border border-slate-950 text-white rounded-2xl p-5 shadow-lg shadow-slate-900/10 relative overflow-hidden">
+              <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-28 h-28 bg-white/5 rounded-full blur-xl" />
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 bg-white/10 text-rose-400 rounded-lg"><Heart size={16} className="fill-current" /></div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Assigned Donor</h4>
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-bold text-white tracking-tight">{request.donorName}</p>
+                {request.donorEmail && (
+                  <p className="text-xs text-slate-400 break-all">{request.donorEmail}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-amber-50/50 border border-amber-200/70 rounded-2xl p-5 text-center">
+              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Awaiting Assignment</p>
+              <p className="text-xs text-amber-600/90 leading-normal max-w-[200px] mx-auto">
+                No local dynamic fulfillment match has locked assignment parameters yet.
+              </p>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

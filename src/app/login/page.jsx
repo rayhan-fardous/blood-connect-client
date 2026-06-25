@@ -1,4 +1,3 @@
-// app/login/page.jsx
 "use client";
 
 import { useState } from "react";
@@ -10,14 +9,14 @@ import toast from 'react-hot-toast';
 
 const FloatingBloodCell = ({ size, top, left, delay, duration }) => (
   <div
-    className="absolute rounded-full bg-red-600/10 blur-3xl pointer-events-none"
+    className="absolute rounded-full bg-red-500/5 blur-3xl pointer-events-none"
     style={{
       width: size,
       height: size,
       top,
       left,
       animation: `float ${duration} ${delay} infinite ease-in-out`,
-      opacity: 0.5,
+      opacity: 0.6,
     }}
   />
 );
@@ -41,7 +40,6 @@ const LoginPage = () => {
       return;
     }
     setLoading(true);
-
     setError("");
 
     try {
@@ -56,7 +54,6 @@ const LoginPage = () => {
         setLoading(false);
         return;
       }
-      // Successful login – redirect to dashboard
 
       toast.success("Login successful!");
       router.push("/dashboard");
@@ -68,9 +65,7 @@ const LoginPage = () => {
   };
 
   return (
-    // Note: Changed min-h-screen grid structure, added pt-28 to clear the fixed navbar height cleanly.
-    <div className="relative min-h-screen flex flex-col justify-between bg-[#0b0f1c] overflow-hidden px-4 pt-28 pb-12">
-      {/* Ambient Radial Background Gradients */}
+    <div className="relative min-h-screen flex flex-col justify-between bg-slate-50 overflow-hidden px-4 pt-28 pb-12">
       <div className="absolute inset-0 pointer-events-none">
         <FloatingBloodCell
           size="400px"
@@ -95,53 +90,49 @@ const LoginPage = () => {
         />
       </div>
 
-      {/* Main card - Structural redesign with cleaner glass effects */}
-      <div className="relative w-full max-w-4xl mx-auto my-auto bg-white/2 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.7)] grid lg:grid-cols-12 overflow-hidden z-10">
-        {/* Left Segment: Refined Brand Focus (Spans 5 Columns) */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col justify-between p-12 bg-linear-to-b from-red-950/40 via-red-900/20 to-transparent relative border-r border-white/5">
+      <div className="relative w-full max-w-4xl mx-auto my-auto bg-white border border-slate-200/80 rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(15,23,42,0.08)] grid lg:grid-cols-12 overflow-hidden z-10">
+        <div className="hidden lg:flex lg:col-span-5 flex-col justify-between p-12 bg-linear-to-b from-red-50 to-transparent relative border-r border-slate-100">
           <div className="space-y-8">
-            <div className="w-14 h-14 flex items-center justify-center bg-red-500/10 border border-red-500/20 rounded-2xl shadow-inner">
-              <Droplets size={28} className="text-red-500 drop-shadow" />
+            <div className="w-14 h-14 flex items-center justify-center bg-red-50 border border-red-100 rounded-2xl shadow-xs">
+              <Droplets size={28} className="text-red-600 drop-shadow-xs" />
             </div>
             <div className="space-y-3">
-              <h2 className="text-3xl font-extrabold text-white tracking-tight leading-tight">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 Empowering <br />
                 Lifesavers.
               </h2>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 Log in to coordinate urgent donation requests, check funding
                 milestones, and manage your bridge to saving lives.
               </p>
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 font-medium tracking-wide">
+          <div className="text-xs text-slate-400 font-medium tracking-wide">
             &copy; BloodConnect network
           </div>
         </div>
 
-        {/* Right Segment: Sleek Input Form (Spans 7 Columns) */}
-        <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-zinc-950/20">
+        <div className="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white">
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Welcome back
               </h1>
-              <p className="text-gray-400 text-sm mt-1">
+              <p className="text-slate-500 text-sm mt-1">
                 Please sign in to your dashboard console.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
                   <Mail
                     size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <input
                     type="email"
@@ -150,20 +141,19 @@ const LoginPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="name@bloodbridge.com"
-                    className="w-full pl-11 pr-4 py-3 bg-white/3 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 focus:bg-white transition-all shadow-inner-sm"
                   />
                 </div>
               </div>
 
-              {/* Password */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Password
                 </label>
                 <div className="relative">
                   <Lock
                     size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -172,47 +162,44 @@ const LoginPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-11 py-3 bg-white/3 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all"
+                    className="w-full pl-11 pr-11 py-3 bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 focus:bg-white transition-all shadow-inner-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              {/* Remember & Forgot */}
               <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 text-gray-400 cursor-pointer select-none">
+                <label className="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded border-white/10 bg-white/5 accent-red-600 cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 bg-slate-50 text-red-600 focus:ring-red-500 cursor-pointer"
                   />
                   Remember session
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-gray-400 hover:text-red-400 transition"
+                  className="text-slate-600 hover:text-red-600 font-medium transition"
                 >
                   Forgot password?
                 </Link>
               </div>
 
-              {/* Error Alert Box */}
               {error && (
-                <div className="p-3 text-xs bg-red-950/50 border border-red-500/20 rounded-xl text-red-400 text-center font-medium">
+                <div className="p-3 text-xs bg-red-50 border border-red-200 rounded-xl text-red-600 text-center font-medium">
                   {error}
                 </div>
               )}
 
-              {/* Action Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-red-950/50 transition-all disabled:opacity-50 text-sm group"
+                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-xl shadow-md shadow-red-600/10 transition-all disabled:opacity-50 text-sm group"
               >
                 {loading ? (
                   <svg
@@ -246,20 +233,18 @@ const LoginPage = () => {
               </button>
             </form>
 
-            {/* Subtle Divider */}
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/5" />
+                <div className="w-full border-t border-slate-100" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-[#111524] text-gray-500">
+                <span className="px-3 bg-white text-slate-400">
                   Third-party authentication
                 </span>
               </div>
             </div>
 
-            {/* Google Social Button */}
-            <button className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 bg-white/2 border border-white/10 rounded-xl text-gray-300 hover:bg-white/6 transition text-sm font-medium">
+            <button className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition text-sm font-medium shadow-xs">
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -281,12 +266,11 @@ const LoginPage = () => {
               Continue with Google
             </button>
 
-            {/* Registration Callout */}
-            <p className="text-center text-xs text-gray-400 mt-4">
+            <p className="text-center text-xs text-slate-500 mt-4">
               Don’t have an authorized credential?{" "}
               <Link
                 href="/register"
-                className="text-red-400 font-medium hover:underline transition"
+                className="text-red-600 font-semibold hover:underline transition"
               >
                 Create an account
               </Link>
@@ -295,8 +279,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Hidden layout spacer maintaining grid symmetry */}
-      <div className="w-full text-center text-[10px] text-gray-600 mt-4 pointer-events-none opacity-40">
+      <div className="w-full text-center text-[10px] text-slate-400 mt-4 pointer-events-none opacity-60">
         Secured Endpoint Connection
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MapPin, Calendar, Clock, Droplet, Eye, Search } from 'lucide-react';
+import { MapPin, Calendar, Clock, Droplet, ArrowRight, Search } from 'lucide-react';
 
 export default function PublicRequestsPage() {
   const [requests, setRequests] = useState([]);
@@ -13,7 +13,7 @@ export default function PublicRequestsPage() {
   useEffect(() => {
     fetch('http://localhost:5000/api/donation-requests?status=pending')
       .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch');
+        if (!res.ok) throw new Error('Could not get data');
         return res.json();
       })
       .then((data) => {
@@ -28,20 +28,17 @@ export default function PublicRequestsPage() {
 
   const filtered = requests.filter(
     (req) =>
-      req.recipientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.bloodGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.district.toLowerCase().includes(searchTerm.toLowerCase())
+      req.recipientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.bloodGroup?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.district?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh] bg-[#0b0f1c]">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 border-4 border-red-200 border-t-red-600 rounded-full animate-spin" />
-          <Droplet
-            size={24}
-            className="absolute inset-0 m-auto text-red-600 animate-pulse"
-          />
+      <div className="flex justify-center items-center min-h-[60vh] bg-slate-50">
+        <div className="relative w-16 h-16 flex items-center justify-center">
+          <div className="absolute inset-0 border-4 border-red-100 border-t-red-500 rounded-full animate-spin" />
+          <Droplet size={24} className="text-red-500 animate-pulse" />
         </div>
       </div>
     );
@@ -49,108 +46,124 @@ export default function PublicRequestsPage() {
 
   if (error) {
     return (
-      <div className="bg-[#0b0f1c] min-h-screen flex items-center justify-center">
-        <p className="text-red-400 text-lg">Something went wrong: {error}</p>
+      <div className="bg-slate-50 min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <p className="text-red-500 font-medium mb-2">Something went wrong</p>
+          <p className="text-sm text-slate-500">{error}. Please try reloading the page.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0f1c] py-16 px-4 relative pt-35">
-      {/* Background decoration */}
+    <div className="min-h-screen bg-slate-50 text-slate-800 py-12 md:py-20 px-4 pt-28 md:pt-36 relative">
+      {/* Soft Background Accents */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-10 w-72 h-72 bg-red-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-16 w-96 h-96 bg-rose-600/5 rounded-full blur-3xl" />
+        <div className="absolute top-10 left-1/4 w-96 h-96 bg-red-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-rose-100/30 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-7xl mx-auto relative">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-            Urgent Blood Needs{' '}
-            <span className="bg-linear-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">
-              Near You
+      <div className="max-w-7xl mx-auto relative z-10">
+        
+        {/* Simple & Welcoming Header */}
+        <div className="text-center mb-12 max-w-2xl mx-auto">
+          <span className="inline-block px-3 py-1 bg-red-50 text-red-600 font-semibold text-xs rounded-full uppercase tracking-wider mb-3">
+            Help Save Lives
+          </span>
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+            People Who Need{' '}
+            <span className="text-red-500">
+              Blood Right Now
             </span>
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Every request represents a life waiting for a hero. Find a request
-            that matches your blood group and respond today.
+          <p className="text-base text-slate-600 leading-relaxed">
+            Every entry below is a real person looking for help. Look through the list, see if you have matching blood, and become their hero today.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md mx-auto mb-10">
+        {/* Clean, Easy Search Bar */}
+        <div className="relative max-w-md mx-auto mb-12 shadow-xs">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             size={18}
           />
           <input
             type="text"
-            placeholder="Search by name, blood group, or district..."
+            placeholder="Search by name, blood group, or area..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+            className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 font-medium shadow-xs focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
           />
         </div>
 
-        {/* Cards Grid */}
+        {/* Dynamic Layout: Empty State or Grid */}
         {filtered.length === 0 ? (
-          <p className="text-center text-gray-400 text-lg">
-            No pending requests match your search.
-          </p>
+          <div className="text-center bg-white border border-slate-100 rounded-3xl p-12 max-w-md mx-auto shadow-xs">
+            <p className="text-slate-500 text-lg font-medium">
+              No requests found matching your search.
+            </p>
+            <p className="text-sm text-slate-400 mt-1">Try checking your spelling or looking for a different blood group.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((req, index) => (
               <div
                 key={req._id}
-                className="group relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 overflow-hidden transition-all duration-500 ease-out hover:border-red-500/40 hover:shadow-[0_0_30px_rgba(220,38,38,0.15)] hover:-translate-y-1 animate-fade-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group relative bg-white border border-slate-100 rounded-2xl p-6 shadow-xs hover:shadow-md hover:border-slate-200 transition-all duration-300 animate-fade-in-up flex flex-col justify-between"
+                style={{ animationDelay: `${index * 60}ms` }}
               >
-                {/* Animated gradient top border – expands from left to right */}
-                <span className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-linear-to-r from-red-600 to-rose-500 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
-
-                {/* Blood group badge */}
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-2xl font-bold text-white">
-                    {req.recipientName}
-                  </h2>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-5  text-red-500 rounded-full text-sm font-bold shadow-sm shadow-red-500 ">
-                    <Droplet size={16} className="" />
-                    {req.bloodGroup}
-                  </span>
-                </div>
-
-                {/* Details */}
-                <div className="space-y-3 text-gray-300 text-sm">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={16} className="text-red-400" />
-                    <span>
-                      {req.district}, {req.upazila}
+                <div>
+                  {/* Card Header: Name & Blood Group Badge */}
+                  <div className="flex justify-between items-start gap-4 mb-5">
+                    <h2 className="text-xl font-bold text-slate-900 line-clamp-1 group-hover:text-red-500 transition-colors">
+                      {req.recipientName}
+                    </h2>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-50 text-red-600 rounded-xl text-sm font-extrabold border border-red-100 shrink-0">
+                      <Droplet size={14} className="fill-current" />
+                      {req.bloodGroup}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-red-400" />
-                    <span>
-                      {new Date(req.donationDate).toLocaleDateString('en-BD', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-red-400" />
-                    <span>{req.donationTime}</span>
+
+                  {/* Plain, Understandable Information Details */}
+                  <div className="space-y-3 text-slate-600 text-sm font-medium">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
+                        <MapPin size={16} />
+                      </div>
+                      <span className="text-slate-700">
+                        {req.district}, {req.upazila}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
+                        <Calendar size={16} />
+                      </div>
+                      <span className="text-slate-700">
+                        {new Date(req.donationDate).toLocaleDateString('en-BD', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
+                        <Clock size={16} />
+                      </div>
+                      <span className="text-slate-700">{req.donationTime}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* View button */}
+                {/* Friendly Action Button */}
                 <Link
                   href={`/donation-requests/${req._id}`}
-                  className="mt-6 w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-red-600/20"
+                  className="mt-6 w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-red-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 text-sm shadow-xs"
                 >
-                  <Eye size={18} />
-                  View Details
+                  <span>View Details</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             ))}
@@ -158,12 +171,12 @@ export default function PublicRequestsPage() {
         )}
       </div>
 
-      {/* Entrance animation keyframes */}
+      {/* Smooth Entrance Animation */}
       <style jsx>{`
         @keyframes fadeInUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(16px);
           }
           to {
             opacity: 1;
@@ -171,7 +184,7 @@ export default function PublicRequestsPage() {
           }
         }
         .animate-fade-in-up {
-          animation: fadeInUp 0.6s ease forwards;
+          animation: fadeInUp 0.4s ease-out forwards;
         }
       `}</style>
     </div>

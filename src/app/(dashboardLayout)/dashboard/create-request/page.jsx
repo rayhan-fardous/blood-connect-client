@@ -17,6 +17,7 @@ import {
   Building2,
   MessageSquare,
   MailIcon,
+  AlertCircle,
 } from 'lucide-react';
 
 // JSON data
@@ -49,6 +50,9 @@ export default function CreateDonationRequestPage() {
   const [filteredUpazilas, setFilteredUpazilas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const isBlocked =
+    (session?.user?.status || 'active').toLowerCase() === 'blocked';
 
   useEffect(() => {
     if (formData.recipientDistrict) {
@@ -143,6 +147,20 @@ export default function CreateDonationRequestPage() {
       setLoading(false);
     }
   };
+
+  if (isBlocked) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="text-center text-red-500">
+          <AlertCircle size={48} className="mx-auto mb-2" />
+          <p className="text-lg">Your account is blocked.</p>
+          <p className="text-sm text-gray-500">
+            You cannot create donation requests while blocked.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6">

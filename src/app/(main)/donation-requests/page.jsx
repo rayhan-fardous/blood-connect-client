@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MapPin, Calendar, Clock, Droplet, ArrowRight, Search } from 'lucide-react';
 
+const ITEMS_PER_PAGE = 10;
+
 export default function PublicRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests?status=pending`)
@@ -32,6 +35,17 @@ export default function PublicRequestsPage() {
       req.bloodGroup?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       req.district?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   if (loading) {
     return (
@@ -91,13 +105,13 @@ export default function PublicRequestsPage() {
             type="text"
             placeholder="Search by name, blood group, or area..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 font-medium shadow-xs focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
           />
         </div>
 
         {/* Dynamic Layout: Empty State or Grid */}
-        {filtered.length === 0 ? (
+        {paginated.length === 0 ? (
           <div className="text-center bg-white border border-slate-100 rounded-3xl p-12 max-w-md mx-auto shadow-xs">
             <p className="text-slate-500 text-lg font-medium">
               No requests found matching your search.
@@ -106,7 +120,7 @@ export default function PublicRequestsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((req, index) => (
+            {paginated.map((req, index) => (
               <div
                 key={req._id}
                 className="group relative bg-white border border-slate-100 rounded-2xl p-6 shadow-xs hover:shadow-md hover:border-slate-200 transition-all duration-300 animate-fade-in-up flex flex-col justify-between"
@@ -167,6 +181,38 @@ export default function PublicRequestsPage() {
                 </Link>
               </div>
             ))}
+          </div>
+        )}
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-10">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm bg-white/5 border border-gray-700 rounded-lg disabled:opacity-40 hover:bg-white/10 text-gray-300 transition"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-9 h-9 rounded-lg text-sm font-medium transition ${
+                  currentPage === page
+                    ? 'bg-red-600 text-white shadow'
+                    : 'bg-white/5 border border-gray-700 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm bg-white/5 border border-gray-700 rounded-lg disabled:opacity-40 hover:bg-white/10 text-gray-300 transition"
+            >
+              Next
+            </button>
           </div>
         )}
       </div>

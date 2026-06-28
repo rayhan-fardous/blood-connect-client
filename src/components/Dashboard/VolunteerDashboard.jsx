@@ -166,7 +166,7 @@ export default function VolunteerDashboard() {
           },
           {
             title: 'Aggregated Funding',
-            value: `৳ ${totalFunding.toLocaleString()}`,
+            value: `$ ${totalFunding.toLocaleString()}`,
             icon: HandCoins,
             col: 'text-emerald-600 bg-emerald-50 border-emerald-100',
           },

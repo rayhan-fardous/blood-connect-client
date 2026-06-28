@@ -150,7 +150,7 @@ export default function AdminDashboard() {
           },
           {
             title: 'Platform Funding',
-            value: `৳ ${totalFunding.toLocaleString()}`,
+            value: `$ ${totalFunding.toLocaleString()}`,
             icon: HandCoins,
             col: 'text-emerald-600 bg-emerald-50 border-emerald-100',
           },

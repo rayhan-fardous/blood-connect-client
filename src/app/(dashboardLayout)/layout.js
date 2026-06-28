@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -33,23 +33,64 @@ const volunteerLinks = [
   { href: "/dashboard/create-request", label: "Create Request", icon: FilePlus },
 ];
 
-const donorLinks = [
+const baseDonorLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/profile", label: "Profile", icon: User },
-  { href: "/dashboard/create-request", label: "Create Request", icon: FilePlus },
   { href: "/dashboard/requests", label: "My Requests", icon: ClipboardList },
 ];
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { data: session } = useSession();
   const router = useRouter();
+
+  const { data: session, isPending: sessionLoading } = useSession();
+
+  
+  useEffect(() => {
+    if (!sessionLoading && !session) {
+      router.push('/login');
+    }
+  }, [session, sessionLoading, router]);
+
+ 
+  if (sessionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  
+  if (!session) return null;
+
+  const isBlocked =
+    (session?.user?.status || 'active').toLowerCase() === 'blocked';
+
+  const donorLinks = [
+    ...baseDonorLinks,
+    ...(isBlocked
+      ? []
+      : [
+          {
+            href: '/dashboard/create-request',
+            label: 'Create Request',
+            icon: FilePlus,
+          },
+        ]),
+  ];
 
   const role = session?.user?.roll?.toLowerCase();
   let sidebarLinks = donorLinks;
   if (role === "admin") sidebarLinks = adminLinks;
   else if (role === "volunteer") sidebarLinks = volunteerLinks;
+
+  if (isBlocked) {
+    sidebarLinks = sidebarLinks.filter(
+      (link) => link.label !== 'Create Request'
+    );
+  }
 
   const handleLogout = async () => {
     const { authClient } = await import("@/lib/auth-client");

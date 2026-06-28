@@ -11,6 +11,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default function SuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -40,7 +42,6 @@ export default function SuccessPage() {
       });
   }, [sessionId]);
 
-  // Loading Screen
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

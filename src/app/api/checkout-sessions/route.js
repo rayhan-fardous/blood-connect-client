@@ -22,8 +22,8 @@ export async function POST(request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/funding?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/dashboard/funding?canceled=true`,
       metadata: {
         donorName: donorName || 'Anonymous',
         donorEmail: donorEmail || '',

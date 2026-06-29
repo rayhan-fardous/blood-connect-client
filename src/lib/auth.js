@@ -8,6 +8,12 @@ const db = client.db("BloodConnect");
 export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
   emailAndPassword: { enabled: true },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+  },
   user: {
     additionalFields: {
       roll: { defaultValue: "Donor" },
@@ -21,21 +27,33 @@ export const auth = betterAuth({
   },
   hooks: {
     onSignUp: async (ctx) => {
-      const metadata = ctx.body?.metadata;
-      
-      if (metadata && ctx.user?.email) {
-        const updateFields = {};
-        if (metadata.bloodGroup) updateFields.bloodGroup = metadata.bloodGroup;
-        if (metadata.district) updateFields.district = metadata.district;
-        if (metadata.upazila) updateFields.upazila = metadata.upazila;
-        if (metadata.phone) updateFields.phone = metadata.phone;
-        if (metadata.avatarUrl) {
-          updateFields.image = metadata.avatarUrl;
-          updateFields.avatarUrl = metadata.avatarUrl;
-        }
+      await db.collection("user").updateOne(
+        { email: ctx.user.email },
+        {
+          $set: {
+            roll: "Donor",
+            status: "Active",
+          },
+        },
+      );
 
-        if (Object.keys(updateFields).length > 0) {
-          const result = await db
+      const metadata = ctx.body?.metadata;
+
+      if (metadata) {
+        const updateFields = {
+          bloodGroup: metadata.bloodGroup,
+          district: metadata.district,
+          upazila: metadata.upazila,
+          phone: metadata.phone,
+          avatarUrl: metadata.avatarUrl,
+        };
+
+        Object.keys(updateFields).forEach(
+          (key) => updateFields[key] === undefined && delete updateFields[key],
+        );
+
+        if (Object.keys(updateFields).length) {
+          await db
             .collection("user")
             .updateOne({ email: ctx.user.email }, { $set: updateFields });
         }

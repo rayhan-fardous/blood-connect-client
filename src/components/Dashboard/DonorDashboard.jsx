@@ -38,7 +38,7 @@ export default function DonorDashboard() {
 
   useEffect(() => {
     if (!user?.email) return;
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/donation-requests?email=${user.email}`)
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/my-donation-requests?email=${user.email}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load requests');
         return res.json();

@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import {
   HandCoins,
   Loader2,
@@ -18,7 +19,14 @@ const ITEMS_PER_PAGE = 5;
 
 export default function FundingPage() {
   const { data: session, isPending: sessionLoading } = useSession();
+  const router = useRouter();
   const [fundings, setFundings] = useState([]);
+
+  useEffect(() => {
+    if (!sessionLoading && !session) {
+      router.push("/login");
+    }
+  }, [session, sessionLoading, router]);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,7 +103,7 @@ export default function FundingPage() {
   };
 
   // Loading / error states
-  if (sessionLoading || fetchLoading) {
+  if (sessionLoading || fetchLoading || !session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 gap-3">
         <Loader2 className="w-8 h-8 text-red-500 animate-spin" />

@@ -18,6 +18,7 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Logo from "@/assets/logo.png";
 import Image from "next/image";
+import AccessDenied from "@/components/Dashboard/AccessDenied";
 
 const adminLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +39,46 @@ const baseDonorLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/requests", label: "My Requests", icon: ClipboardList },
 ];
+const checkAccess = (pathname, role, isBlocked) => {
+  const path = pathname.replace(/\/$/, "");
+  const allRoles = ["donor", "volunteer", "admin"];
+
+  if (path === "/dashboard" || path === "/dashboard/profile") {
+    return { allowed: true, allowedRoles: allRoles };
+  }
+
+  if (path === "/dashboard/allUsers") {
+    return { allowed: role === "admin", allowedRoles: ["admin"] };
+  }
+
+  if (path === "/dashboard/allDonationRequests") {
+    return { allowed: role === "admin" || role === "volunteer", allowedRoles: ["admin", "volunteer"] };
+  }
+
+  if (path === "/dashboard/create-request") {
+    const allowed = role === "volunteer" || (role === "donor" && !isBlocked);
+    return { 
+      allowed, 
+      allowedRoles: isBlocked ? ["active donor", "volunteer"] : ["donor", "volunteer"] 
+    };
+  }
+
+  if (path === "/dashboard/requests") {
+    return { allowed: role === "donor", allowedRoles: ["donor"] };
+  }
+
+  const editRegex = /^\/dashboard\/requests\/[^/]+\/edit$/;
+  if (editRegex.test(path)) {
+    return { allowed: role === "admin" || role === "donor", allowedRoles: ["admin", "donor"] };
+  }
+
+  const detailRegex = /^\/dashboard\/requests\/[^/]+$/;
+  if (detailRegex.test(path)) {
+    return { allowed: role === "admin" || role === "volunteer" || role === "donor", allowedRoles: allRoles };
+  }
+
+  return { allowed: true, allowedRoles: [] };
+};
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -81,10 +122,12 @@ export default function DashboardLayout({ children }) {
         ]),
   ];
 
-  const role = session?.user?.roll?.toLowerCase();
+  const role = (session?.user?.roll || session?.user?.role || "donor").toLowerCase();
   let sidebarLinks = donorLinks;
   if (role === "admin") sidebarLinks = adminLinks;
   else if (role === "volunteer") sidebarLinks = volunteerLinks;
+
+  const access = checkAccess(pathname, role, isBlocked);
 
   if (isBlocked) {
     sidebarLinks = sidebarLinks.filter(
@@ -220,7 +263,9 @@ export default function DashboardLayout({ children }) {
             style={{ backgroundColor: "rgba(255, 250, 250, 0.75)" }}
           />
           <div className="flex-1 p-4 md:p-8 relative z-10">
-            <div className="max-w-7xl mx-auto">{children}</div>
+            <div className="max-w-7xl mx-auto">
+              {access.allowed ? children : <AccessDenied allowedRoles={access.allowedRoles} />}
+            </div>
           </div>
         </main>
       </div>

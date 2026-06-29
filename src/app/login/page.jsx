@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Droplets } from "lucide-react";
-import { authClient } from '@/lib/auth-client';
+import { authClient, useSession } from '@/lib/auth-client';
 import toast from 'react-hot-toast';
 
 const FloatingBloodCell = ({ size, top, left, delay, duration }) => (
@@ -23,7 +23,14 @@ const FloatingBloodCell = ({ size, top, left, delay, duration }) => (
 
 const LoginPage = () => {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [formData, setFormData] = useState({ email: "", password: "" });
+
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -75,6 +82,18 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (session) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col justify-between bg-slate-50 overflow-hidden px-4 pt-28 pb-12">

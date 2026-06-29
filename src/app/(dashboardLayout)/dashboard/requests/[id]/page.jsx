@@ -91,7 +91,7 @@ export default function RequestDetailPage({ params }) {
       {/* Top action header navigation bar */}
       <div className="flex items-center justify-between">
         <Link
-          href="/dashboard/requests"
+          href="/dashboard/allDonationRequests"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-rose-600 bg-white border border-gray-200/80 rounded-xl hover:border-gray-300 transition shadow-sm group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />

@@ -240,7 +240,7 @@ export default function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
         <header className="lg:hidden flex items-center justify-between p-4 bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -253,7 +253,7 @@ export default function DashboardLayout({ children }) {
         </header>
 
         <main
-          className="flex-1 flex flex-col bg-cover bg-center bg-no-repeat bg-fixed relative"
+          className="flex-1 min-w-0 flex flex-col bg-cover bg-center bg-no-repeat relative"
           style={{
             backgroundImage: `url('https://i.ibb.co.com/LXMbmdZV/Chat-GPT-Image-Jun-25-2026-12-01-18-PM.png')`,
           }}
@@ -263,7 +263,7 @@ export default function DashboardLayout({ children }) {
             style={{ backgroundColor: "rgba(255, 250, 250, 0.75)" }}
           />
           <div className="flex-1 p-4 md:p-8 relative z-10">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto w-full min-w-0">
               {access.allowed ? children : <AccessDenied allowedRoles={access.allowedRoles} />}
             </div>
           </div>

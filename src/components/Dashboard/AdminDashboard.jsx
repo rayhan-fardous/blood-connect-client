@@ -191,7 +191,7 @@ export default function AdminDashboard() {
             Monthly Blood Requests
           </h3>
           <div className="w-full h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" debounce={100}>
               <BarChart
                 data={monthlyRequestsData}
                 margin={{ top: 10, right: 10, left: -25, bottom: 5 }}

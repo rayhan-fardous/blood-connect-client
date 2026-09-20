@@ -2,6 +2,7 @@
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import BloodBot from '@/components/ai/BloodBot';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
         className={`${poppins.className} min-h-full flex flex-col bg-gray-50 text-gray-900`}
       >
         {children}
+        <BloodBot />
         <Toaster
           position="top-center"
           reverseOrder={false}

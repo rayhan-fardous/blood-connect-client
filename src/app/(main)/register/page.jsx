@@ -19,8 +19,8 @@ import {
 
 import { authClient, useSession } from "@/lib/auth-client";
 
-import districtsRaw from "../../../data/districts.json";
-import upazilasRaw from "../../../data/upazilas.json";
+import districtsRaw from "../../../../data/districts.json";
+import upazilasRaw from "../../../../data/upazilas.json";
 
 import toast from "react-hot-toast";
 

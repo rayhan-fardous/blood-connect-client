@@ -1,301 +1,141 @@
-# 🩸 Blood Connect
+# 🩸 BloodConnect
 
-> **A modern blood donation management system that helps connect blood donors with recipients while providing powerful management tools for administrators and volunteers.**
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg)](#license)
 
----
+BloodConnect is a responsive blood-donation platform that helps connect blood donors with people in need. The client application provides a clear public search experience, secure account access, role-based dashboards, donation-request management, funding support, and practical tools for coordinating urgent requests.
 
-## 🌐 Overview
+## Live Project & Repositories
 
-Blood Connect is a full-stack web application developed to simplify the blood donation process. It enables people to request blood during emergencies, allows eligible donors to respond to requests, and provides administrators and volunteers with the tools needed to efficiently manage the platform.
+- **Live application:** [blood-connect-liart.vercel.app](https://blood-connect-liart.vercel.app)
+- **Client repository:** [rayhan-fardous/blood-connect-client](https://github.com/rayhan-fardous/blood-connect-client)
+- **Server-side repository:** [rayhan-fardous/blood-connect-server](https://github.com/rayhan-fardous/blood-connect-server)
 
-The application also includes an online funding system, real-time dashboard analytics, secure authentication, and role-based permissions to ensure a smooth and secure user experience.
+## Key Features
 
----
+- Search active blood requests by blood group, district, and upazila.
+- Register and sign in securely with Better Auth, including Google sign-in support.
+- Create, update, track, and manage donation requests.
+- Match compatible donor and recipient blood groups, with urgency-aware request information.
+- Use dedicated donor, volunteer, and administrator dashboards with role-based access.
+- Manage profiles, user roles, account status, request activity, and operational data.
+- Contribute to the platform through Stripe Checkout.
+- View donation, request, and funding statistics through dashboard analytics.
+- Use a responsive interface with light/dark mode, validation, feedback toasts, and loading states.
 
-## 🔗 Project Links
+## Technology Stack
 
-- 🌐 **Live Site:** https://blood-connect-liart.vercel.app
-- 💻 **Client Repository:** https://github.com/rayhan-fardous/blood-connect-client
-- ⚙️ **Server Repository:** https://github.com/rayhan-fardous/blood-connect-server
+| Area | Technologies |
+| --- | --- |
+| Framework | Next.js 16, React 19 |
+| Styling & UI | Tailwind CSS 4, HeroUI, Framer Motion |
+| Authentication | Better Auth, MongoDB adapter |
+| Database | MongoDB Atlas |
+| Payments | Stripe Checkout |
+| Analytics | Recharts |
+| AI assistance | Gemini API |
+| Server | Node.js, Express |
+| Deployment | Vercel |
 
----
+## Screenshots
 
-## 📸 Screenshots
+### Home
 
-### 🏠 Home Page
-![Home Page](public/screenshots/home.png)
+![BloodConnect home page](public/screenshots/home.png)
 
-### 👤 Donor Dashboard
-![Donor Dashboard](public/screenshots/donor.png)
+### Donor Dashboard
 
-### 👨‍💼 Admin Dashboard
-![Admin Dashboard](public/screenshots/admin.png)
+![Donor dashboard](public/screenshots/donor.png)
 
-### 🩸 Donation Request
-![Donation Request](public/screenshots/donation_req.png)
+### Administrator Dashboard
 
-### 📋 My Donation Requests
-![My Donation Requests](public/screenshots/donation_req_profile.png)
+![Administrator dashboard](public/screenshots/admin.png)
 
-### 📑 All Requests
-![All Requests](public/screenshots/all_requests.png)
+### Donation Requests
 
-### 💰 Funding
-![Funding](public/screenshots/funding.png)
+![Donation request page](public/screenshots/donation_req.png)
 
----
+### My Requests
 
-# ✨ Features
+![Donation request profile page](public/screenshots/donation_req_profile.png)
 
-## 🔑 Secure Authentication
+### All Requests
 
-* User registration and login using Better Auth.
-* Protected routes for authenticated users.
-* Role-based authorization for:
+![All donation requests](public/screenshots/all_requests.png)
 
-  * Donor
-  * Volunteer
-  * Administrator
-* Account blocking and permission management.
+### Funding
 
----
+![Funding page](public/screenshots/funding.png)
 
-## ❤️ Donor Features
+## Getting Started
 
-Registered donors can:
+### Prerequisites
 
-* Create blood donation requests.
-* Edit or delete their own requests.
-* View donation history.
-* Track request status.
-* Update personal profile information.
-* Accept eligible blood requests.
-* Make financial contributions through Stripe.
+- Node.js 20 or later
+- npm
+- A MongoDB Atlas database
+- Stripe API keys (for payments)
+- Google OAuth credentials (for Google sign-in)
+- A Gemini API key (for AI-powered features)
 
----
-
-## 👨‍💼 Administrator Dashboard
-
-Administrators have complete control over the platform, including:
-
-* Manage all registered users.
-* Promote or demote user roles.
-* Block or unblock accounts.
-* View every blood donation request.
-* Monitor donation statistics.
-* View funding information.
-* Access dashboard charts and analytics.
-
----
-
-## 🤝 Volunteer Dashboard
-
-Volunteers can assist with platform operations by:
-
-* Viewing all blood requests.
-* Updating request status.
-* Managing ongoing donation activities.
-* Monitoring overall donation statistics.
-
----
-
-## 🔍 Public Blood Request Search
-
-Visitors can search for available blood requests without creating an account.
-
-Search filters include:
-
-* Blood Group
-* District
-* Upazila
-
-Only active requests are displayed.
-
-Detailed request information is available after user authentication.
-
----
-
-## 💳 Online Donation System
-
-Integrated Stripe Checkout allows users to financially support the platform.
-
-Features include:
-
-* Secure payment processing
-* Payment success confirmation
-* Automatic donation record storage
-* Live funding updates on dashboards
-
----
-
-## 📈 Dashboard Analytics
-
-Interactive charts provide insights such as:
-
-* Total Users
-* Total Blood Requests
-* Total Funding
-* Monthly Request Statistics
-* Request Status Distribution
-
----
-
-## 👤 Profile Management
-
-Users can:
-
-* Update name
-* Upload or change profile image
-* Change blood group
-* Update district and upazila
-* View account information
-
-Email addresses remain protected and cannot be modified.
-
----
-
-## 🎨 User Experience
-
-* Responsive design for all devices
-* Clean and modern interface
-* Dark & Light mode support
-* Animated components
-* Toast notifications
-* Loading indicators
-* Form validation
-* Error handling
-
----
-
-# 🛠 Technology Stack
-
-| Category        | Technologies                       |
-| --------------- | ---------------------------------- |
-| Frontend        | Next.js 15, React 19, Tailwind CSS |
-| Backend         | Express.js, Node.js                |
-| Database        | MongoDB Atlas                      |
-| Authentication  | Better Auth                        |
-| Payment         | Stripe Checkout                    |
-| Charts          | Recharts                           |
-| Icons           | Lucide React                       |
-| Notifications   | React Hot Toast                    |
-| Deployment      | Vercel                             |
-| Version Control | Git & GitHub                       |
-
----
-
-# 📦 Main Packages
-
-### Frontend
-
-* next
-* react
-* react-dom
-* tailwindcss
-* lucide-react
-* recharts
-* react-hot-toast
-* better-auth
-* @better-auth/mongodb-adapter
-* @stripe/react-stripe-js
-* @stripe/stripe-js
-
-### Backend
-
-* express
-* mongodb
-* stripe
-* dotenv
-* cors
-* cookie-parser
-
----
-
-# 🚀 Installation
-
-## Clone the repository
+### 1. Clone and install
 
 ```bash
-git clone https://github.com/rayhan-fardous/blood-connect-client
+git clone https://github.com/rayhan-fardous/blood-connect-client.git
+cd blood-connect-client
+npm install
 ```
 
----
+### 2. Configure environment variables
 
-## Environment Variables
-
-### Client
+Create a `.env.local` file in the project root:
 
 ```env
-BETTER_AUTH_SECRET=
-BETTER_AUTH_URL=
+BETTER_AUTH_SECRET=your_secure_auth_secret
+BETTER_AUTH_URL=http://localhost:3000
 
-MONGODB_URI=
+MONGODB_URI=your_mongodb_connection_string
 
-NEXT_PUBLIC_BASE_URL=
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_SECRET_KEY=
+NEXT_PUBLIC_BASE_URL=http://localhost:5000
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### Server
+`NEXT_PUBLIC_BASE_URL` must point to the BloodConnect server API. For local development, clone and run the [server-side project](https://github.com/rayhan-fardous/blood-connect-server) separately.
 
-```env
-MONGODB_URI=
-
-STRIPE_SECRET_KEY=
-```
-
----
-
-## Run Development Server
-
-### Frontend
+### 3. Run the development server
 
 ```bash
 npm run dev
 ```
 
-### Backend
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-npm run server
-```
+## Available Scripts
 
----
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server. |
+| `npm run build` | Create an optimized production build. |
+| `npm run start` | Start the production server after building. |
+| `npm run lint` | Run ESLint checks. |
 
-# 🔒 User Roles
+## Server-side Setup
 
-### Donor
+The Express API, MongoDB data access, and related endpoints are maintained in the separate [BloodConnect server repository](https://github.com/rayhan-fardous/blood-connect-server). Follow that repository's setup instructions, set `NEXT_PUBLIC_BASE_URL` to its running URL, and start it before using features that require API data.
 
-* Register account
-* Manage own requests
-* Accept donation requests
-* Update profile
-* Donate funds
+## Contributing
 
-### Volunteer
+Contributions are welcome. Please fork the repository, create a focused branch, make your change, verify it locally, and open a pull request with a concise description.
 
-* View all requests
-* Update request status
-* Assist donors and recipients
+## License
 
-### Administrator
-
-* Full user management
-* Role management
-* Request management
-* Funding overview
-* Platform analytics
-
----
-
-# 👨‍💻 Developer
-
-Developed as a full-stack web application using the MERN ecosystem with Next.js, secure authentication, and Stripe payment integration.
-
----
-
-## ⭐ Support
-
-If you found this project useful, consider giving it a ⭐ on GitHub. It helps others discover the project and motivates future improvements.
+This project is licensed under the ISC License.

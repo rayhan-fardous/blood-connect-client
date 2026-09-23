@@ -14,6 +14,15 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
   },
+  // A user may register with a password first, then choose Google with the
+  // same address. Google has already verified that address, so safely attach
+  // that identity instead of rejecting the sign-in as "account_not_linked".
+  account: {
+    accountLinking: {
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
   user: {
     additionalFields: {
       roll: { defaultValue: "Donor" },
